@@ -3,8 +3,13 @@ from datetime import datetime
 import os
 import cv2
 import asyncio
-from live_socket import manager
-
+# from live_socket import manager
+try:
+    from live_socket import manager
+    SOCKET_AVAILABLE = True
+except:
+    SOCKET_AVAILABLE = False
+    print("⚠️ Running in Notebook mode (no websocket)")
 # =========================
 # 📁 PROJECT ROOT
 # =========================
@@ -90,12 +95,17 @@ def save_log(status, confidence, frame_or_path, email="system", role="user", sou
     }
 
     collection.insert_one(log_data)
+    if SOCKET_AVAILABLE:
+        try:
+            asyncio.run(manager.broadcast("new_detection"))
+        except:
+            pass
 
     # Broadcast to Frontend
-    try:
-         asyncio.run(manager.broadcast("new_detection"))
-    except:
-        pass
+    # try:
+    #      asyncio.run(manager.broadcast("new_detection"))
+    # except:
+    #     pass
 
     # Save to TXT
     with open(LOG_FILE, "a", encoding="utf-8") as f:
