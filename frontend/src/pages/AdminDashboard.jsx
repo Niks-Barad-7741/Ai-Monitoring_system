@@ -95,9 +95,9 @@ function AdminDashboard(){
       {/* ================= STATS ================= */}
       <div className="grid md:grid-cols-3 gap-8 mb-12">
 
-        {/* card */}
         <div className="bg-[#111827] border border-purple-500 rounded-2xl p-6 
-        shadow-[0_0_25px_rgba(168,85,247,0.4)] text-center">
+        shadow-[0_0_25px_rgba(168,85,247,0.4)] text-center transition-all duration-300 
+        hover:scale-105 hover:shadow-[0_0_35px_rgba(168,85,247,0.6)]">
           <h2 className="text-purple-300">Total Detections</h2>
           <p className="text-4xl font-bold mt-2 text-cyan-400">
             {stats.total_detections}
@@ -105,7 +105,8 @@ function AdminDashboard(){
         </div>
 
         <div className="bg-[#111827] border border-cyan-500 rounded-2xl p-6 
-        shadow-[0_0_25px_rgba(34,211,238,0.4)] text-center">
+        shadow-[0_0_25px_rgba(34,211,238,0.4)] text-center transition-all duration-300 
+        hover:scale-105 hover:shadow-[0_0_35px_rgba(34,211,238,0.6)]">
           <h2 className="text-cyan-300">Mask 😷</h2>
           <p className="text-4xl font-bold mt-2 text-cyan-400">
             {stats.mask_detected}
@@ -113,7 +114,8 @@ function AdminDashboard(){
         </div>
 
         <div className="bg-[#111827] border border-pink-500 rounded-2xl p-6 
-        shadow-[0_0_25px_rgba(236,72,153,0.4)] text-center">
+        shadow-[0_0_25px_rgba(236,72,153,0.4)] text-center transition-all duration-300 
+        hover:scale-105 hover:shadow-[0_0_35px_rgba(236,72,153,0.6)]">
           <h2 className="text-pink-400">No Mask ❌</h2>
           <p className="text-4xl font-bold mt-2 text-pink-400">
             {stats.no_mask_detected}
@@ -122,23 +124,33 @@ function AdminDashboard(){
 
       </div>
 
-      {/* ================= BUTTONS ================= */}
-      <div className="flex gap-6 mb-12">
+      {/* ================= BUTTONS (NEON STYLE) ================= */}
+      <div className="flex justify-center gap-10 mb-12">
 
+        {/* 🟣 Upload Button: Transparent -> Purple Fill */}
         <button
           onClick={()=>window.location="/upload"}
-          className="px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-700 
-          shadow-lg shadow-purple-500/40 transition"
+          className="px-10 py-4 rounded-xl text-lg font-semibold tracking-wider
+          border-2 border-purple-500 text-purple-400 bg-transparent
+          shadow-[0_0_15px_rgba(168,85,247,0.3)]
+          transition-all duration-300 ease-in-out
+          hover:bg-purple-600 hover:text-white hover:border-purple-600
+          hover:shadow-[0_0_40px_rgba(168,85,247,0.8)] hover:scale-105"
         >
-          📤 Upload Detection
+          Upload Detection
         </button>
 
+        {/* 🔵 Webcam Button: Transparent -> Cyan Fill */}
         <button
           onClick={()=>window.location="/webcam"}
-          className="px-6 py-3 rounded-xl bg-cyan-600 hover:bg-cyan-700 
-          shadow-lg shadow-cyan-500/40 transition"
+          className="px-10 py-4 rounded-xl text-lg font-semibold tracking-wider
+          border-2 border-cyan-500 text-cyan-400 bg-transparent
+          shadow-[0_0_15px_rgba(6,182,212,0.3)]
+          transition-all duration-300 ease-in-out
+          hover:bg-cyan-500 hover:text-black hover:border-cyan-500
+          hover:shadow-[0_0_40px_rgba(6,182,212,0.8)] hover:scale-105"
         >
-          🎥 Live Webcam
+          Live Webcam
         </button>
 
       </div>
