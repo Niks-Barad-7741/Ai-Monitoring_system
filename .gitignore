@@ -1,0 +1,18 @@
+# Ignore huge datasets
+Dataset/
+Backup/
+
+# Ignore Python system files
+__pycache__/
+*.pyc
+venv/
+.env
+
+# Ignore logs
+logs_images/
+log.txt
+
+# Ignore Frontend junk (Crucial for React)
+frontend/node_modules/
+frontend/dist/
+frontend/.DS_Store

@@ -14,53 +14,53 @@ function Login(){
         {email,password}
       );
 
-      console.log(res.data);   // 👈 see token in console
-
-      // 🔥 SAVE TOKEN
       sessionStorage.setItem("token", res.data.token);
       sessionStorage.setItem("role", res.data.role);
       sessionStorage.setItem("email", res.data.email);
 
-      alert("Login Success 🚀");
       if(res.data.role === "admin"){
-            window.location="/admin";
-        }else{
-            window.location="/user"
-        }
+        window.location="/admin";
+      }else{
+        window.location="/user";
+      }
 
-    }catch(err){
+    }catch{
       alert("Invalid Login");
     }
   }
 
   return(
-    <div className="min-h-screen flex justify-center items-center bg-black text-green-400">
+    <div className="min-h-screen flex items-center justify-center bg-[#0b0f19] text-white">
 
-      <div className="border border-green-500 p-8 rounded-xl w-96">
-        <h1 className="text-2xl mb-6 text-center">🔐 AI Monitoring Login</h1>
+      <div className="bg-[#111827] p-10 rounded-xl shadow-2xl w-96 border border-cyan-500/20">
+
+        <h1 className="text-3xl mb-6 text-center text-cyan-400">
+          AI Monitoring Login
+        </h1>
 
         <input
           type="email"
-          placeholder="Enter Email"
-          className="w-full p-3 mb-4 bg-black border border-green-500"
+          placeholder="Email"
+          className="w-full p-3 mb-4 bg-black/40 border border-gray-600 rounded focus:outline-none focus:border-cyan-400"
           onChange={(e)=>setEmail(e.target.value)}
         />
 
         <input
           type="password"
-          placeholder="Enter Password"
-          className="w-full p-3 mb-4 bg-black border border-green-500"
+          placeholder="Password"
+          className="w-full p-3 mb-6 bg-black/40 border border-gray-600 rounded focus:outline-none focus:border-cyan-400"
           onChange={(e)=>setPassword(e.target.value)}
         />
 
         <button
           onClick={handleLogin}
-          className="w-full bg-green-600 p-3 rounded"
+          className="w-full py-3 rounded bg-gradient-to-r from-cyan-500 to-blue-600 hover:scale-105 transition"
         >
           Login
         </button>
 
       </div>
+
     </div>
   )
 }
