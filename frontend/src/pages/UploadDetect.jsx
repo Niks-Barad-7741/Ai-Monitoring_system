@@ -17,7 +17,6 @@ function UploadDetect(){
     }
 
     if(loading) return;
-
     setLoading(true);
 
     const formData = new FormData();
@@ -40,40 +39,54 @@ function UploadDetect(){
   };
 
   return(
-    <div className="min-h-screen bg-[#020617] text-cyan-400 flex flex-col items-center justify-center">
+    <div className="min-h-screen bg-[#020617] text-cyan-400 flex flex-col items-center justify-center px-4 py-8">
 
       {/* TITLE */}
-      <h1 className="text-4xl font-bold mb-8 text-cyan-400 tracking-widest">
-        AI IMAGE SCANNER
+      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-8 text-cyan-400 tracking-widest text-center">
+         AI IMAGE SCANNER
       </h1>
 
       {/* MAIN CARD */}
-      <div className="bg-[#0b1120] border border-cyan-500/40 shadow-[0_0_30px_#06b6d4] p-10 rounded-2xl w-[420px] text-center">
+      <div className="
+        bg-[#0b1120] border border-cyan-500/40 
+        shadow-[0_0_30px_#06b6d4] 
+        p-6 sm:p-8 md:p-10 
+        rounded-2xl 
+        w-full max-w-md text-center
+      ">
 
         {/* FILE INPUT */}
         <input
           type="file"
           onChange={(e)=>setFile(e.target.files[0])}
-          className="mb-6 w-full text-sm file:bg-cyan-600 file:border-none file:px-4 file:py-2 file:rounded file:text-white file:cursor-pointer"
+          className="
+            mb-6 w-full text-sm
+            file:bg-cyan-600 file:border-none 
+            file:px-4 file:py-2 file:rounded 
+            file:text-white file:cursor-pointer
+          "
         />
 
         {/* BUTTON */}
         <button
           onClick={uploadImage}
           disabled={loading}
-          className={`w-full py-3 rounded-xl font-semibold tracking-wider transition-all duration-300 ${
-            loading
-            ? "bg-gray-700 cursor-not-allowed"
-            : "bg-cyan-600 hover:bg-cyan-500 shadow-[0_0_20px_#06b6d4]"
-          }`}
+          className={`
+            w-full py-3 rounded-xl font-semibold tracking-wider 
+            transition-all duration-300 text-sm sm:text-base
+            ${loading
+              ? "bg-gray-700 cursor-not-allowed"
+              : "bg-cyan-600 hover:bg-cyan-500 shadow-[0_0_20px_#06b6d4]"
+            }
+          `}
         >
-          {loading ? "SCANNING..." : "START DETECTION"}
+          {loading ? " SCANNING..." : " START DETECTION"}
         </button>
 
         {/* RESULT */}
         {result && (
-          <div className="mt-8 p-4 rounded-xl border border-cyan-500 bg-black/40">
-            <h2 className="text-xl">
+          <div className="mt-8 p-4 rounded-xl border border-cyan-500 bg-black/40 animate-pulse">
+            <h2 className="text-lg sm:text-xl">
               RESULT :
               <span className={`ml-2 font-bold ${
                 result === "Mask" ? "text-green-400" : "text-red-400"
@@ -87,7 +100,7 @@ function UploadDetect(){
         {/* BACK */}
         <button
           onClick={()=>window.history.back()}
-          className="mt-6 text-sm text-red-400 hover:text-red-300 underline"
+          className="mt-6 text-xs sm:text-sm text-red-400 hover:text-red-300 underline"
         >
           ← Back to Dashboard
         </button>
