@@ -66,7 +66,7 @@ function UserDashboard(){
       <div className="flex flex-col md:block relative mb-12">
 
         {/* Logout Button */}
-        <div className="md:absolute md:right-0 md:top-0 mb-6 md:mb-0 text-center md:text-right">
+        <div className="md:absolute md:right-0 md:top-0 mb-6 md:mb-0 text-center md:text-right z-50">
           <button 
             onClick={logout}
             className="px-6 py-2 bg-red-600 rounded-lg hover:bg-red-700 transition shadow-lg"
