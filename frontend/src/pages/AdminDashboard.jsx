@@ -5,12 +5,15 @@ function AdminDashboard(){
 
   const [stats,setStats] = useState(null);
   const [logs,setLogs] = useState([]);
-  const token = sessionStorage.getItem("token");
+  const [showLogs,setShowLogs] = useState(false);
 
-  // ==============================
-  // 🔥 FETCH DASHBOARD DATA
-  // ==============================
-  const fetchDashboard = ()=>{
+  const token = sessionStorage.getItem("token");
+  const email = sessionStorage.getItem("email");
+
+  // ===============================
+  // FETCH ADMIN DATA
+  // ===============================
+  const fetchAdmin = ()=>{
     axios.get("http://127.0.0.1:8000/dashboard/admin-dashboard",{
       headers:{ Authorization:`Bearer ${token}` }
     })
@@ -19,43 +22,26 @@ function AdminDashboard(){
       setLogs(res.data.logs || []);
     })
     .catch(()=>{
-      alert("Session expired");
+      alert("Session expired login again");
       sessionStorage.clear();
       window.location="/";
     });
-  };
+  }
 
-  // initial load
-  useEffect(()=>{ fetchDashboard(); },[]);
+  useEffect(()=>{ fetchAdmin(); },[]);
 
-  // ==============================
-  // 🔴 LIVE SOCKET
-  // ==============================
+  // ===============================
+  // LIVE SOCKET
+  // ===============================
   useEffect(()=>{
     let ws;
 
     const connectSocket = ()=>{
       ws = new WebSocket("ws://127.0.0.1:8000/ws/live");
 
-      ws.onopen = ()=>{
-        console.log("🔥 Admin LIVE connected");
+      ws.onmessage = ()=> fetchAdmin();
 
-        // keep alive
-        setInterval(()=>{
-          if(ws.readyState===1) ws.send("ping");
-        },20000);
-      };
-
-      ws.onmessage = (event)=>{
-        if(event.data==="new_detection"){
-          fetchDashboard();
-        }
-      };
-
-      ws.onclose = ()=>{
-        console.log("Reconnecting socket...");
-        setTimeout(connectSocket,2000);
-      };
+      ws.onclose = ()=> setTimeout(connectSocket,2000);
     };
 
     connectSocket();
@@ -65,140 +51,157 @@ function AdminDashboard(){
   const logout = ()=>{
     sessionStorage.clear();
     window.location="/";
-  };
+  }
 
   if(!stats) return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0b0f17] text-purple-400">
-      Loading Dashboard...
+    <div className="min-h-screen flex items-center justify-center bg-[#020617] text-purple-400">
+      Loading Admin Dashboard...
     </div>
   );
 
   return(
-    <div className="min-h-screen bg-[#0b0f17] text-white p-8">
+    <div className="min-h-screen bg-[#020617] text-white px-4 py-6 md:p-10">
 
-      {/* HEADER */}
-      <div className="flex justify-between items-center mb-10">
-        <h1 className="text-4xl font-bold text-purple-400 drop-shadow-lg">
-          🛡 AI Monitoring Admin
-        </h1>
+      {/* ================= HEADER ================= */}
+      <div className="flex flex-col md:block relative mb-12">
 
-        <button 
-          onClick={logout}
-          className="px-5 py-2 bg-red-600 rounded-lg hover:bg-red-700 transition"
-        >
-          Logout
-        </button>
+        {/* Logout Button */}
+        <div className="md:absolute md:right-0 md:top-0 mb-6 md:mb-0 text-center md:text-right">
+          <button 
+            onClick={logout}
+            className="px-6 py-2 bg-red-600 rounded-lg hover:bg-red-700 transition shadow-lg"
+          >
+            Logout
+          </button>
+        </div>
+
+        {/* Title Center */}
+        <div className="text-center">
+          <h1 className="text-3xl md:text-5xl font-bold tracking-widest text-purple-400 drop-shadow-[0_0_15px_purple]">
+             Admin Control Panel
+          </h1>
+
+          <p className="mt-2 text-sm md:text-base text-gray-400 break-all">
+            Logged in as <span className="text-purple-300">{email}</span>
+          </p>
+        </div>
+
       </div>
 
-      <p className="text-purple-300 mb-10">Welcome Admin: {stats.admin}</p>
-
       {/* ================= STATS ================= */}
-      <div className="grid md:grid-cols-3 gap-8 mb-12">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
 
-        <div className="bg-[#111827] border border-purple-500 rounded-2xl p-6 
-        shadow-[0_0_25px_rgba(168,85,247,0.4)] text-center transition-all duration-300 
-        hover:scale-105 hover:shadow-[0_0_35px_rgba(168,85,247,0.6)]">
-          <h2 className="text-purple-300">Total Detections</h2>
-          <p className="text-4xl font-bold mt-2 text-cyan-400">
+        <div className="bg-[#020617] border border-purple-500 rounded-xl p-6 md:p-8 text-center shadow-[0_0_15px_purple]">
+          <h2 className="text-gray-400">Total Detections</h2>
+          <p className="text-3xl md:text-4xl text-cyan-300 mt-2">
             {stats.total_detections}
           </p>
         </div>
 
-        <div className="bg-[#111827] border border-cyan-500 rounded-2xl p-6 
-        shadow-[0_0_25px_rgba(34,211,238,0.4)] text-center transition-all duration-300 
-        hover:scale-105 hover:shadow-[0_0_35px_rgba(34,211,238,0.6)]">
-          <h2 className="text-cyan-300">Mask 😷</h2>
-          <p className="text-4xl font-bold mt-2 text-cyan-400">
+        <div className="bg-[#020617] border border-green-400 rounded-xl p-6 md:p-8 text-center shadow-[0_0_15px_green]">
+          <h2 className="text-gray-400">Mask </h2>
+          <p className="text-3xl md:text-4xl text-green-400 mt-2">
             {stats.mask_detected}
           </p>
         </div>
 
-        <div className="bg-[#111827] border border-pink-500 rounded-2xl p-6 
-        shadow-[0_0_25px_rgba(236,72,153,0.4)] text-center transition-all duration-300 
-        hover:scale-105 hover:shadow-[0_0_35px_rgba(236,72,153,0.6)]">
-          <h2 className="text-pink-400">No Mask ❌</h2>
-          <p className="text-4xl font-bold mt-2 text-pink-400">
+        <div className="bg-[#020617] border border-red-500 rounded-xl p-6 md:p-8 text-center shadow-[0_0_15px_red]">
+          <h2 className="text-gray-400">No Mask </h2>
+          <p className="text-3xl md:text-4xl text-red-400 mt-2">
             {stats.no_mask_detected}
           </p>
         </div>
 
       </div>
 
-      {/* ================= BUTTONS (NEON STYLE) ================= */}
-      <div className="flex justify-center gap-10 mb-12">
+      {/* ================= BUTTONS ================= */}
+      <div className="flex flex-col md:flex-row justify-center gap-4 md:gap-8 mb-12">
 
-        {/* 🟣 Upload Button: Transparent -> Purple Fill */}
         <button
           onClick={()=>window.location="/upload"}
-          className="px-10 py-4 rounded-xl text-lg font-semibold tracking-wider
-          border-2 border-purple-500 text-purple-400 bg-transparent
-          shadow-[0_0_15px_rgba(168,85,247,0.3)]
-          transition-all duration-300 ease-in-out
-          hover:bg-purple-600 hover:text-white hover:border-purple-600
-          hover:shadow-[0_0_40px_rgba(168,85,247,0.8)] hover:scale-105"
+          className="w-full md:w-auto px-8 py-4 rounded-lg bg-purple-500/20 border border-purple-400
+          hover:bg-purple-400 hover:text-black transition shadow-[0_0_15px_purple]"
         >
-          Upload Detection
+           Upload Detection
         </button>
 
-        {/* 🔵 Webcam Button: Transparent -> Cyan Fill */}
         <button
           onClick={()=>window.location="/webcam"}
-          className="px-10 py-4 rounded-xl text-lg font-semibold tracking-wider
-          border-2 border-cyan-500 text-cyan-400 bg-transparent
-          shadow-[0_0_15px_rgba(6,182,212,0.3)]
-          transition-all duration-300 ease-in-out
-          hover:bg-cyan-500 hover:text-black hover:border-cyan-500
-          hover:shadow-[0_0_40px_rgba(6,182,212,0.8)] hover:scale-105"
+          className="w-full md:w-auto px-8 py-4 rounded-lg bg-cyan-500/20 border border-cyan-400
+          hover:bg-cyan-400 hover:text-black transition shadow-[0_0_15px_cyan]"
         >
-          Live Webcam
+           Live Webcam
+        </button>
+
+        <button
+          onClick={()=>setShowLogs(!showLogs)}
+          className="w-full md:w-auto px-8 py-4 rounded-lg bg-yellow-500/20 border border-yellow-400
+          hover:bg-yellow-400 hover:text-black transition shadow-[0_0_15px_yellow]"
+        >
+          {showLogs ? " Hide Logs" : " View Logs"}
         </button>
 
       </div>
 
-      {/* ================= LOG TABLE ================= */}
-      <h2 className="text-2xl text-purple-400 mb-4">Live Detection Logs</h2>
+      {/* ================= LOGS ================= */}
+      {showLogs && (
+        <>
+          <h2 className="text-xl md:text-2xl mb-4 text-purple-300">All Detection Logs</h2>
 
-      <div className="bg-[#111827] border border-purple-500 rounded-2xl p-4 
-      shadow-[0_0_20px_rgba(168,85,247,0.4)] max-h-[450px] overflow-auto">
+          <div className="w-full overflow-x-auto border border-purple-500 rounded-lg shadow-[0_0_15px_purple]">
+            
+            <div className="max-h-[420px] overflow-y-auto">
 
-        <table className="w-full text-sm">
-          <thead className="text-purple-300 border-b border-purple-700">
-            <tr>
-              <th className="py-2">Email</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th>Confidence</th>
-              <th>Source</th>
-              <th>Time</th>
-            </tr>
-          </thead>
+              <table className="min-w-[750px] w-full text-sm md:text-base">
 
-          <tbody>
-            {logs.map((log,index)=>(
-              <tr key={index} className="text-center border-b border-gray-800 hover:bg-[#1f2937]">
-                <td className="py-2">{log.email}</td>
-                <td>{log.role}</td>
+                <thead className="bg-[#020617] border-b border-purple-500 text-purple-300 sticky top-0">
+                  <tr>
+                    <th className="p-3 text-left">Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Confidence</th>
+                    <th>Source</th>
+                    <th className="text-right pr-4">Time</th>
+                  </tr>
+                </thead>
 
-                <td className={
-                  log.status==="Mask"
-                  ? "text-green-400 font-bold"
-                  : "text-red-400 font-bold"
-                }>
-                  {log.status}
-                </td>
+                <tbody>
+                  {logs.map((log,index)=>(
+                    <tr key={index} className="text-center border-b border-purple-900 hover:bg-purple-900/20">
 
-                <td className="text-cyan-400">
-                  {log.confidence?.toFixed(3)}
-                </td>
+                      <td className="text-left p-3">{log.email}</td>
+                      <td>{log.role}</td>
 
-                <td className="text-purple-300">{log.source}</td>
-                <td className="text-gray-400">{log.timestamp}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                      <td>
+                        <span className={`px-3 py-1 rounded-full text-xs md:text-sm font-bold ${
+                          log.status==="Mask"
+                          ? "bg-green-900/40 text-green-400 border border-green-500"
+                          : "bg-red-900/40 text-red-400 border border-red-500"
+                        }`}>
+                          {log.status}
+                        </span>
+                      </td>
 
-      </div>
+                      <td className="text-cyan-300">
+                        {log.confidence?.toFixed(3)}
+                      </td>
+
+                      <td className="text-yellow-300">{log.source}</td>
+
+                      <td className="text-gray-400 text-right pr-4 text-xs md:text-sm">
+                        {log.timestamp}
+                      </td>
+
+                    </tr>
+                  ))}
+                </tbody>
+
+              </table>
+
+            </div>
+          </div>
+        </>
+      )}
 
     </div>
   )
