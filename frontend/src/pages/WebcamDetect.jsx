@@ -206,7 +206,7 @@ function WebcamDetect(){
           bg-gradient-to-r from-cyan-400 to-purple-500 
           bg-clip-text text-transparent
           drop-shadow-lg">
-            🤖 LIVE AI MONITOR
+             LIVE AI MONITOR
           </h1>
 
           <p className="text-gray-400 text-xs sm:text-sm md:text-base px-2">

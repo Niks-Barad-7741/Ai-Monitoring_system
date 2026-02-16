@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends
 from routes import auth,dashboard
 from routes import ai_routes
 from fastapi.middleware.cors import CORSMiddleware
-
+from routes import admin_analytics
 
 
 
@@ -21,6 +21,7 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/auth", tags=["Auth"])
 app.include_router(dashboard.router, prefix="/dashboard", tags=["Dashboard"])
 app.include_router(ai_routes.router, prefix="/ai", tags=["AI Detection"])
+app.include_router(admin_analytics.router, prefix="/admin",tags=["Analytics"])
 
 
 
