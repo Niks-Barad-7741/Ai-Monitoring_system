@@ -5,6 +5,7 @@ sys.path.append(os.path.abspath(".."))
 from fastapi import APIRouter, Depends
 from mongo_log import collection
 from dependencies import get_current_user
+from active_users import get_active_count
 from datetime import datetime, timedelta
 
 router = APIRouter()
@@ -14,6 +15,7 @@ router = APIRouter()
 # =========================
 @router.get("/admin-analytics")
 def get_admin_analytics(current_user=Depends(get_current_user)):
+    active_users = get_active_count()
 
     if current_user["role"] != "admin":
         return {"error":"Unauthorized"}
@@ -40,5 +42,6 @@ def get_admin_analytics(current_user=Depends(get_current_user)):
         "webcam": webcam,
         "upload": upload,
         # "system": system,
-        "today": today_count
+        "today": today_count,
+        "active_users": active_users
     }
