@@ -4,6 +4,7 @@ from models import UserRegister, UserLogin
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 from jose import jwt
+from active_users import add_user,remove_user
 from security import SECRET_KEY
 
 router = APIRouter()
@@ -52,6 +53,30 @@ def register_user(user: UserRegister):
 # =========================
 # 🔐 LOGIN API WITH TOKEN
 # =========================
+# @router.post("/login")
+# def login_user(user: UserLogin):
+
+#     db_user = users_collection.find_one({"email": user.email})
+#     if not db_user:
+#         raise HTTPException(status_code=404, detail="User not found")
+
+#     if not pwd_context.verify(user.password, db_user["password"]):
+#         raise HTTPException(status_code=401, detail="Invalid password")
+
+#     # 🎯 CREATE JWT TOKEN
+#     token = create_access_token({
+#         "email": db_user["email"],
+#         "role": db_user["role"],
+#         "name": db_user["name"]
+#     })
+
+#     return {
+#         "message": "Login successful",
+#         "token": token,
+#         "email": db_user["email"],
+#         "role": db_user["role"],
+#         "name": db_user["name"]
+#     }
 @router.post("/login")
 def login_user(user: UserLogin):
 
@@ -69,6 +94,9 @@ def login_user(user: UserLogin):
         "name": db_user["name"]
     })
 
+    # 🟢 ADD ACTIVE USER
+    add_user(db_user["email"])
+
     return {
         "message": "Login successful",
         "token": token,
@@ -76,3 +104,13 @@ def login_user(user: UserLogin):
         "role": db_user["role"],
         "name": db_user["name"]
     }
+
+@router.post("/logout")
+def logout_user(data: dict):
+
+    email = data.get("email")
+
+    if email:
+        remove_user(email)
+
+    return {"message":"Logged out"}
