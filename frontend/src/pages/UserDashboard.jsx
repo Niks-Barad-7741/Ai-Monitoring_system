@@ -50,10 +50,21 @@ function UserDashboard(){
     return ()=> ws && ws.close();
   },[]);
 
-  const logout = ()=>{
-    sessionStorage.clear();
-    navigate("/");
+// ===============================
+// 🔴 LOGOUT WITH ACTIVE USER REMOVE
+// ===============================
+const logout = async () => {
+  const email = sessionStorage.getItem("email");
+
+  try{
+    await axios.post("http://127.0.0.1:8000/auth/logout", { email });
+  }catch(err){
+    console.log("Logout sync error (ignored)");
   }
+
+  sessionStorage.clear();
+  navigate("/");
+};
 
   if(!stats) return (
     <div className="min-h-screen flex items-center justify-center bg-[#020617] text-cyan-400">
