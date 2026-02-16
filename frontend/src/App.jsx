@@ -5,6 +5,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import UserDashboard from "./pages/UserDashboard";
 import UploadDetect from "./pages/UploadDetect";
 import WebcamDetect from "./pages/WebcamDetect";
+import AdminAnalytics from "./pages/AdminAnalytics";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -41,6 +42,13 @@ function App(){
         <Route path="/webcam" element={
           <ProtectedRoute>
             <WebcamDetect/>
+          </ProtectedRoute>
+        }/>
+
+        {/* Admin Analytics */}
+        <Route path="/analytics" element={
+          <ProtectedRoute>
+            <AdminAnalytics/>
           </ProtectedRoute>
         }/>
 
