@@ -45,3 +45,16 @@ def get_admin_analytics(current_user=Depends(get_current_user)):
         "today": today_count,
         "active_users": active_users
     }
+@router.get("/admin-logs")
+def get_all_logs(current_user=Depends(get_current_user)):
+    if current_user["role"] != "admin":
+        return {"error": "Unauthorized"}
+
+    # Fetch ALL logs from MongoDB, sorted newest first
+    logs_cursor = collection.find({}, {"_id": 0}).sort("timestamp", -1)
+    logs = list(logs_cursor)
+
+    return {
+        "logs": logs,
+        "total": len(logs)
+    }
