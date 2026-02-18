@@ -186,7 +186,7 @@ function AdminDashboard(){
       {/* ================= MODALS ================= */}
       {showUploadModal && <UploadModal onClose={()=>setShowUploadModal(false)} token={token} onSuccess={fetchAdmin} />}
       {showWebcamModal && <WebcamModal onClose={()=>setShowWebcamModal(false)} token={token} onSuccess={fetchAdmin} />}
-      {showLogsModal && <LogsModal onClose={()=>setShowLogsModal(false)} logs={logs} />}
+      {showLogsModal && <LogsModal onClose={()=>setShowLogsModal(false)} token={token} />}
       {showAnalyticsModal && <AnalyticsModal onClose={()=>setShowAnalyticsModal(false)} token={token} />}
 
     </div>
@@ -833,35 +833,54 @@ function WebcamModal({ onClose, token, onSuccess }) {
   );
 }
 // ================= LOGS MODAL =================
-function LogsModal({ onClose, logs }) {
-  const [filteredLogs, setFilteredLogs] = useState(logs);
+function LogsModal({ onClose, token }) {
+  const [allLogs,      setAllLogs]      = useState([]);
+  const [filteredLogs, setFilteredLogs] = useState([]);
+  const [fetchLoading, setFetchLoading] = useState(true);
+  const [fetchError,   setFetchError]   = useState("");
   const [currentPage,  setCurrentPage]  = useState(1);
   const [logsPerPage,  setLogsPerPage]  = useState(10);
   const [filters, setFilters] = useState({ status: 'all', role: 'all', source: 'all', search: '' });
 
+  // ── Fetch ALL logs directly from API ──────────────────────
+  useEffect(() => {
+    setFetchLoading(true);
+    axios.get("http://127.0.0.1:8000/admin/admin-logs", {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    .then(res => {
+      const logs = res.data.logs || [];
+      setAllLogs(logs);
+      setFilteredLogs(logs);
+    })
+    .catch(() => setFetchError("Failed to load logs. Please try again."))
+    .finally(() => setFetchLoading(false));
+  }, [token]);
+
   // ── Apply filters ──────────────────────────────────────────
   useEffect(() => {
-    let result = [...logs];
-    if (filters.status !== 'all') result = result.filter(l => l.status  === filters.status);
-    if (filters.role   !== 'all') result = result.filter(l => l.role    === filters.role);
-    if (filters.source !== 'all') result = result.filter(l => l.source  === filters.source);
+    let result = [...allLogs];
+    if (filters.status !== 'all') result = result.filter(l => l.status === filters.status);
+    if (filters.role   !== 'all') result = result.filter(l => l.role   === filters.role);
+    if (filters.source !== 'all') result = result.filter(l => l.source === filters.source);
     if (filters.search)           result = result.filter(l => l.email.toLowerCase().includes(filters.search.toLowerCase()));
     setFilteredLogs(result);
     setCurrentPage(1);
-  }, [filters, logs]);
+  }, [filters, allLogs]);
 
   useEffect(() => { setCurrentPage(1); }, [logsPerPage]);
 
   // ── Pagination ─────────────────────────────────────────────
-  const totalPages     = Math.ceil(filteredLogs.length / logsPerPage);
-  const indexOfFirst   = (currentPage - 1) * logsPerPage;
-  const indexOfLast    = Math.min(indexOfFirst + logsPerPage, filteredLogs.length);
-  const currentLogs    = filteredLogs.slice(indexOfFirst, indexOfLast);
+  const totalPages   = Math.ceil(filteredLogs.length / logsPerPage);
+  const indexOfFirst = (currentPage - 1) * logsPerPage;
+  const indexOfLast  = Math.min(indexOfFirst + logsPerPage, filteredLogs.length);
+  const currentLogs  = filteredLogs.slice(indexOfFirst, indexOfLast);
 
   const handleFilter   = (key, val) => setFilters(p => ({ ...p, [key]: val }));
   const resetFilters   = () => setFilters({ status: 'all', role: 'all', source: 'all', search: '' });
+  const hasActiveFilter = filters.status !== 'all' || filters.role !== 'all' || filters.source !== 'all' || filters.search;
 
-  // Build page number array with ellipsis
+  // Smart ellipsis page numbers
   const getPageNums = () => {
     if (totalPages <= 7) return [...Array(totalPages)].map((_, i) => i + 1);
     const pages = new Set([1, totalPages, currentPage, currentPage - 1, currentPage + 1].filter(p => p >= 1 && p <= totalPages));
@@ -874,389 +893,434 @@ function LogsModal({ onClose, logs }) {
     return result;
   };
 
-  const inputClass = "w-full px-3 py-2 bg-[#020617] border border-purple-500/30 rounded-lg text-sm text-white focus:outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-500/30 transition-colors placeholder:text-gray-600";
-  const selectClass = "w-full px-3 py-2 bg-[#020617] border border-purple-500/30 rounded-lg text-sm text-white focus:outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-500/30 transition-colors appearance-none cursor-pointer";
+  // Source helper — handles webcam / upload / System
+  const getSourceStyle = (source) => {
+    const s = source?.toLowerCase();
+    if (s === 'webcam') return { color: 'text-yellow-400', icon: (
+      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+          d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+      </svg>
+    )};
+    if (s === 'upload') return { color: 'text-blue-400', icon: (
+      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+      </svg>
+    )};
+    // System or anything else
+    return { color: 'text-gray-400', icon: (
+      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+          d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/>
+      </svg>
+    )};
+  };
+
+  const inputClass  = "w-full px-3 py-2 bg-[#020617] border border-purple-500/30 rounded-lg text-sm text-white focus:outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-500/30 transition-colors placeholder:text-gray-600";
+  const selectClass = "w-full pl-3 pr-8 py-2 bg-[#020617] border border-purple-500/30 rounded-lg text-sm text-white focus:outline-none focus:border-purple-400 focus:ring-1 focus:ring-purple-500/30 transition-colors appearance-none cursor-pointer";
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-[3px] z-50 flex items-center justify-center p-3 sm:p-4 lg:p-6 animate-fadeIn">
+    <>
+      {/* ── Themed purple scrollbar ── */}
+      <style>{`
+        .logs-scroll::-webkit-scrollbar { width: 5px; }
+        .logs-scroll::-webkit-scrollbar-track { background: #020617; }
+        .logs-scroll::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.4); border-radius: 9999px; }
+        .logs-scroll::-webkit-scrollbar-thumb:hover { background: rgba(168,85,247,0.7); }
+        .logs-scroll { scrollbar-width: thin; scrollbar-color: rgba(168,85,247,0.4) #020617; }
+      `}</style>
 
-      {/* ── Container — flex column so header+footer are fixed, only table scrolls ── */}
-      <div className="bg-[#0b1120]/95 backdrop-blur-xl border border-purple-500/40 rounded-2xl w-full max-w-5xl shadow-[0_0_50px_rgba(168,85,247,0.55)] flex flex-col"
-        style={{ maxHeight: "92vh" }}>
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-[3px] z-50 flex items-center justify-center p-3 sm:p-4 lg:p-6 animate-fadeIn">
+        <div
+          className="bg-[#0b1120]/95 backdrop-blur-xl border border-purple-500/40 rounded-2xl w-full max-w-5xl shadow-[0_0_50px_rgba(168,85,247,0.55)] flex flex-col"
+          style={{ maxHeight: "92vh" }}
+        >
 
-        {/* ── Header ── */}
-        <div className="flex-shrink-0 bg-[#0b1120] border-b border-purple-500/30 px-5 py-4 sm:px-8 sm:py-5 flex items-center justify-between rounded-t-2xl">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-yellow-500/20 border border-yellow-500/40 flex items-center justify-center flex-shrink-0">
-              {/* Clipboard / logs SVG */}
-              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          {/* ── Header ── */}
+          <div className="flex-shrink-0 bg-[#0b1120] border-b border-purple-500/30 px-5 py-4 sm:px-8 sm:py-5 flex items-center justify-between rounded-t-2xl">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-yellow-500/20 border border-yellow-500/40 flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-yellow-400">Detection Logs</h2>
+                <p className="text-xs text-gray-500 mt-0.5 font-mono">
+                  {fetchLoading ? "Loading..." : `${allLogs.length} total records`}
+                </p>
+              </div>
+            </div>
+            <button onClick={onClose} className="text-gray-400 hover:text-white transition p-2 hover:bg-white/10 rounded-lg flex-shrink-0">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
-            </div>
-            <div>
-              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-yellow-400">Detection Logs</h2>
-              <p className="text-xs text-gray-500 mt-0.5 font-mono">{logs.length} total records</p>
-            </div>
-          </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-white transition p-2 hover:bg-white/10 rounded-lg flex-shrink-0">
-            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        {/* ── Filters bar ── */}
-        <div className="flex-shrink-0 bg-[#0b1120]/80 border-b border-purple-500/20 px-5 py-4 sm:px-8">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {/* Search */}
-            <div className="col-span-2 lg:col-span-1">
-              <label className="text-xs text-gray-400 mb-1.5 flex items-center gap-1.5">
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
-                Search Email
-              </label>
-              <input
-                type="text"
-                placeholder="Search by email..."
-                value={filters.search}
-                onChange={e => handleFilter('search', e.target.value)}
-                className={inputClass}
-              />
-            </div>
-
-            {/* Status */}
-            <div>
-              <label className="text-xs text-gray-400 mb-1.5 flex items-center gap-1.5">
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                Status
-              </label>
-              <div className="relative">
-                <select value={filters.status} onChange={e => handleFilter('status', e.target.value)} className={selectClass}>
-                  <option value="all">All Status</option>
-                  <option value="Mask">Mask</option>
-                  <option value="No Mask">No Mask</option>
-                </select>
-                <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
-                </svg>
-              </div>
-            </div>
-
-            {/* Role */}
-            <div>
-              <label className="text-xs text-gray-400 mb-1.5 flex items-center gap-1.5">
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                </svg>
-                Role
-              </label>
-              <div className="relative">
-                <select value={filters.role} onChange={e => handleFilter('role', e.target.value)} className={selectClass}>
-                  <option value="all">All Roles</option>
-                  <option value="admin">Admin</option>
-                  <option value="user">User</option>
-                </select>
-                <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
-                </svg>
-              </div>
-            </div>
-
-            {/* Source */}
-            <div>
-              <label className="text-xs text-gray-400 mb-1.5 flex items-center gap-1.5">
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                </svg>
-                Source
-              </label>
-              <div className="relative">
-                <select value={filters.source} onChange={e => handleFilter('source', e.target.value)} className={selectClass}>
-                  <option value="all">All Sources</option>
-                  <option value="webcam">Webcam</option>
-                  <option value="upload">Upload</option>
-                </select>
-                <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
-                </svg>
-              </div>
-            </div>
+            </button>
           </div>
 
-          {/* Results row */}
-          <div className="flex items-center justify-between mt-3">
-            <p className="text-xs text-gray-500 font-mono">
-              Showing <span className="text-purple-400 font-semibold">{currentLogs.length}</span> of <span className="text-purple-400 font-semibold">{filteredLogs.length}</span> logs
-            </p>
-            {(filters.status !== 'all' || filters.role !== 'all' || filters.source !== 'all' || filters.search) && (
-              <button onClick={resetFilters} className="flex items-center gap-1.5 text-xs text-purple-400 hover:text-purple-300 transition font-medium">
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                </svg>
-                Reset Filters
-              </button>
-            )}
-          </div>
-        </div>
+          {/* ── Filters ── */}
+          <div className="flex-shrink-0 bg-[#0b1120]/80 border-b border-purple-500/20 px-5 py-4 sm:px-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
 
-        {/* ── Table — THIS is the only scrollable zone ── */}
-        <div className="flex-1 overflow-y-auto min-h-0">
-
-          {/* Desktop table */}
-          <div className="hidden lg:block">
-            <table className="w-full text-sm">
-              <thead className="bg-[#020617] border-b border-purple-500/40 sticky top-0 z-10">
-                <tr>
-                  {[
-                    { label: 'Email',      align: 'text-left'   },
-                    { label: 'Role',       align: 'text-center' },
-                    { label: 'Status',     align: 'text-center' },
-                    { label: 'Confidence', align: 'text-center' },
-                    { label: 'Source',     align: 'text-center' },
-                    { label: 'Time',       align: 'text-right'  },
-                  ].map(h => (
-                    <th key={h.label} className={`px-5 py-3.5 ${h.align} text-xs font-semibold text-purple-300 uppercase tracking-widest`}>
-                      {h.label}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-purple-900/30">
-                {currentLogs.length === 0 ? (
-                  <tr>
-                    <td colSpan="6" className="text-center py-16 text-gray-500">
-                      <svg className="w-10 h-10 mx-auto mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                      </svg>
-                      {logs.length === 0 ? "No logs available" : "No logs match your filters"}
-                    </td>
-                  </tr>
-                ) : currentLogs.map((log, i) => (
-                  <tr key={i} className="hover:bg-purple-900/10 transition-colors">
-                    <td className="px-5 py-3.5 text-gray-300 text-sm">{log.email}</td>
-                    <td className="px-5 py-3.5 text-center">
-                      <span className={`text-xs font-medium px-2.5 py-1 rounded-full capitalize
-                        ${log.role === 'admin'
-                          ? 'bg-purple-500/15 text-purple-400 border border-purple-500/30'
-                          : 'bg-blue-500/15 text-blue-400 border border-blue-500/30'}`}>
-                        {log.role}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5 text-center">
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold
-                        ${log.status === "Mask"
-                          ? "bg-green-900/30 text-green-400 border border-green-500/40"
-                          : "bg-red-900/30 text-red-400 border border-red-500/40"}`}>
-                        {log.status === "Mask" ? (
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/>
-                          </svg>
-                        ) : (
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12"/>
-                          </svg>
-                        )}
-                        {log.status}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5 text-center font-mono text-cyan-300 text-sm">
-                      {typeof log.confidence === 'number' ? log.confidence.toFixed(3) : log.confidence}
-                    </td>
-                    <td className="px-5 py-3.5 text-center">
-                      <span className={`inline-flex items-center gap-1.5 text-xs font-medium capitalize
-                        ${log.source === 'webcam' ? 'text-yellow-400' : 'text-blue-400'}`}>
-                        {log.source === 'webcam' ? (
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                              d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                          </svg>
-                        ) : (
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                          </svg>
-                        )}
-                        {log.source}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5 text-right font-mono text-xs text-gray-500">{log.timestamp}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Mobile cards */}
-          <div className="lg:hidden p-4 sm:p-5 space-y-3">
-            {currentLogs.length === 0 ? (
-              <div className="bg-[#020617] border border-purple-500/30 rounded-xl p-8 text-center text-gray-500 text-sm">
-                {logs.length === 0 ? "No logs available" : "No logs match your filters"}
+              {/* Search */}
+              <div className="col-span-2 lg:col-span-1">
+                <label className="text-xs text-gray-400 mb-1.5 flex items-center gap-1.5">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                  </svg>
+                  Search Email
+                </label>
+                <input type="text" placeholder="Search by email..." value={filters.search}
+                  onChange={e => handleFilter('search', e.target.value)} className={inputClass} />
               </div>
-            ) : currentLogs.map((log, i) => (
-              <div key={i} className="bg-[#020617] border border-purple-500/20 rounded-xl p-4 hover:border-purple-500/40 transition-colors">
-                {/* Top row */}
-                <div className="flex items-start justify-between gap-2 mb-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs text-gray-500 mb-0.5">Email</p>
-                    <p className="text-sm text-gray-300 break-all font-medium">{log.email}</p>
-                  </div>
-                  <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold flex-shrink-0
-                    ${log.status === "Mask"
-                      ? "bg-green-900/30 text-green-400 border border-green-500/40"
-                      : "bg-red-900/30 text-red-400 border border-red-500/40"}`}>
-                    {log.status === "Mask" ? (
-                      <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/>
-                      </svg>
-                    ) : (
-                      <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12"/>
-                      </svg>
-                    )}
-                    {log.status}
-                  </span>
-                </div>
-                {/* Bottom grid */}
-                <div className="grid grid-cols-3 gap-3 pt-3 border-t border-purple-900/30">
-                  <div>
-                    <p className="text-xs text-gray-500 mb-0.5">Role</p>
-                    <span className={`text-xs font-medium capitalize
-                      ${log.role === 'admin' ? 'text-purple-400' : 'text-blue-400'}`}>
-                      {log.role}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 mb-0.5">Confidence</p>
-                    <p className="text-xs text-cyan-300 font-mono font-medium">
-                      {typeof log.confidence === 'number' ? log.confidence.toFixed(3) : log.confidence}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-500 mb-0.5">Source</p>
-                    <p className={`text-xs font-medium capitalize ${log.source === 'webcam' ? 'text-yellow-400' : 'text-blue-400'}`}>
-                      {log.source}
-                    </p>
-                  </div>
-                  <div className="col-span-3">
-                    <p className="text-xs text-gray-500 mb-0.5">Time</p>
-                    <p className="text-xs text-gray-400 font-mono">{log.timestamp}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
 
-        {/* ── Pagination footer — fixed at bottom, never scrolls ── */}
-        {filteredLogs.length > 0 && (
-          <div className="flex-shrink-0 bg-[#0b1120]/90 border-t border-purple-500/20 px-5 py-3 sm:px-8 rounded-b-2xl">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-
-              {/* Left: rows per page + count + refresh */}
-              <div className="flex items-center gap-3">
+              {/* Status */}
+              <div>
+                <label className="text-xs text-gray-400 mb-1.5 flex items-center gap-1.5">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  Status
+                </label>
                 <div className="relative">
-                  <select
-                    value={logsPerPage}
-                    onChange={e => setLogsPerPage(Number(e.target.value))}
-                    className="pl-3 pr-7 py-1.5 bg-[#020617] border border-purple-500/30 rounded-lg text-xs text-white focus:outline-none focus:border-purple-400 appearance-none cursor-pointer"
-                  >
-                    {[10, 25, 50, 75, 100].map(n => (
-                      <option key={n} value={n}>{n} / page</option>
-                    ))}
+                  <select value={filters.status} onChange={e => handleFilter('status', e.target.value)} className={selectClass}>
+                    <option value="all">All Status</option>
+                    <option value="Mask">Mask</option>
+                    <option value="No Mask">No Mask</option>
                   </select>
-                  <svg className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
                   </svg>
                 </div>
+              </div>
 
-                <span className="text-xs text-gray-400 font-mono whitespace-nowrap">
-                  {indexOfFirst + 1}–{indexOfLast} of {filteredLogs.length}
-                </span>
+              {/* Role */}
+              <div>
+                <label className="text-xs text-gray-400 mb-1.5 flex items-center gap-1.5">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                  </svg>
+                  Role
+                </label>
+                <div className="relative">
+                  <select value={filters.role} onChange={e => handleFilter('role', e.target.value)} className={selectClass}>
+                    <option value="all">All Roles</option>
+                    <option value="admin">Admin</option>
+                    <option value="user">User</option>
+                  </select>
+                  <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
+                  </svg>
+                </div>
+              </div>
 
-                <button
-                  onClick={() => { setCurrentPage(1); resetFilters(); }}
-                  title="Reset to page 1"
-                  className="p-1.5 hover:bg-white/10 rounded-lg transition text-gray-500 hover:text-white"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {/* Source */}
+              <div>
+                <label className="text-xs text-gray-400 mb-1.5 flex items-center gap-1.5">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                  </svg>
+                  Source
+                </label>
+                <div className="relative">
+                  <select value={filters.source} onChange={e => handleFilter('source', e.target.value)} className={selectClass}>
+                    <option value="all">All Sources</option>
+                    <option value="webcam">Webcam</option>
+                    <option value="upload">Upload</option>
+                    <option value="System">System</option>
+                  </select>
+                  <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Results + reset row */}
+            <div className="flex items-center justify-between mt-3">
+              <p className="text-xs text-gray-500 font-mono">
+                Showing <span className="text-purple-400 font-semibold">{currentLogs.length}</span> of{" "}
+                <span className="text-purple-400 font-semibold">{filteredLogs.length}</span> logs
+              </p>
+              {hasActiveFilter && (
+                <button onClick={resetFilters} className="flex items-center gap-1.5 text-xs text-purple-400 hover:text-purple-300 transition font-medium">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                       d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                   </svg>
+                  Reset Filters
                 </button>
-              </div>
-
-              {/* Right: page navigation */}
-              {totalPages > 1 && (
-                <div className="flex items-center gap-1">
-                  {/* Prev */}
-                  <button
-                    onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
-                    disabled={currentPage === 1}
-                    className={`p-1.5 rounded-lg transition ${currentPage === 1 ? 'text-gray-700 cursor-not-allowed' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7"/>
-                    </svg>
-                  </button>
-
-                  {/* Page numbers */}
-                  {getPageNums().map((p, i) =>
-                    p === '...' ? (
-                      <span key={`ellipsis-${i}`} className="w-7 text-center text-gray-600 text-xs">…</span>
-                    ) : (
-                      <button
-                        key={p}
-                        onClick={() => setCurrentPage(p)}
-                        className={`w-7 h-7 rounded-lg text-xs font-medium transition ${
-                          currentPage === p
-                            ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30'
-                            : 'text-gray-400 hover:bg-white/10 hover:text-white'
-                        }`}
-                      >
-                        {p}
-                      </button>
-                    )
-                  )}
-
-                  {/* Next */}
-                  <button
-                    onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                    className={`p-1.5 rounded-lg transition ${currentPage === totalPages ? 'text-gray-700 cursor-not-allowed' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/>
-                    </svg>
-                  </button>
-                </div>
               )}
             </div>
           </div>
-        )}
 
+          {/* ── Scrollable table area ── */}
+          <div className="flex-1 overflow-y-auto min-h-0 logs-scroll">
+
+            {/* Loading */}
+            {fetchLoading && (
+              <div className="flex flex-col items-center justify-center py-20 gap-4">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-400" />
+                <p className="text-purple-400 text-sm">Fetching all logs...</p>
+              </div>
+            )}
+
+            {/* Error */}
+            {fetchError && !fetchLoading && (
+              <div className="m-5 p-4 rounded-xl border border-red-500/40 bg-red-500/10 flex items-center gap-3">
+                <svg className="w-5 h-5 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <p className="text-red-400 text-sm">{fetchError}</p>
+              </div>
+            )}
+
+            {!fetchLoading && !fetchError && (
+              <>
+                {/* ── Desktop table ── */}
+                <div className="hidden lg:block">
+                  <table className="w-full text-sm">
+                    <thead className="bg-[#020617] border-b border-purple-500/30 sticky top-0 z-10">
+                      <tr>
+                        {[
+                          { label: 'Email',      align: 'text-left'   },
+                          { label: 'Role',       align: 'text-center' },
+                          { label: 'Status',     align: 'text-center' },
+                          { label: 'Confidence', align: 'text-center' },
+                          { label: 'Source',     align: 'text-center' },
+                          { label: 'Time',       align: 'text-right'  },
+                        ].map(h => (
+                          <th key={h.label} className={`px-5 py-3.5 ${h.align} text-xs font-semibold text-purple-300 uppercase tracking-widest`}>
+                            {h.label}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-purple-900/20">
+                      {currentLogs.length === 0 ? (
+                        <tr>
+                          <td colSpan="6" className="text-center py-16 text-gray-500">
+                            <svg className="w-10 h-10 mx-auto mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            {allLogs.length === 0 ? "No logs available" : "No logs match your filters"}
+                          </td>
+                        </tr>
+                      ) : currentLogs.map((log, i) => {
+                        const src = getSourceStyle(log.source);
+                        return (
+                          <tr key={i} className="hover:bg-purple-900/10 transition-colors">
+                            <td className="px-5 py-3.5 text-gray-300 text-sm">{log.email}</td>
+                            <td className="px-5 py-3.5 text-center">
+                              <span className={`text-xs font-medium px-2.5 py-1 rounded-full capitalize
+                                ${log.role === 'admin'
+                                  ? 'bg-purple-500/15 text-purple-400 border border-purple-500/30'
+                                  : 'bg-blue-500/15 text-blue-400 border border-blue-500/30'}`}>
+                                {log.role}
+                              </span>
+                            </td>
+                            <td className="px-5 py-3.5 text-center">
+                              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold
+                                ${log.status === "Mask"
+                                  ? "bg-green-900/30 text-green-400 border border-green-500/40"
+                                  : "bg-red-900/30 text-red-400 border border-red-500/40"}`}>
+                                {log.status === "Mask" ? (
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/>
+                                  </svg>
+                                ) : (
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12"/>
+                                  </svg>
+                                )}
+                                {log.status}
+                              </span>
+                            </td>
+                            <td className="px-5 py-3.5 text-center font-mono text-cyan-300 text-sm">
+                              {typeof log.confidence === 'number' ? log.confidence.toFixed(3) : log.confidence}
+                            </td>
+                            <td className="px-5 py-3.5 text-center">
+                              <span className={`inline-flex items-center gap-1.5 text-xs font-medium capitalize ${src.color}`}>
+                                {src.icon}
+                                {log.source}
+                              </span>
+                            </td>
+                            <td className="px-5 py-3.5 text-right font-mono text-xs text-gray-500">{log.timestamp}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* ── Mobile cards ── */}
+                <div className="lg:hidden p-4 sm:p-5 space-y-3">
+                  {currentLogs.length === 0 ? (
+                    <div className="bg-[#020617] border border-purple-500/30 rounded-xl p-8 text-center text-gray-500 text-sm">
+                      {allLogs.length === 0 ? "No logs available" : "No logs match your filters"}
+                    </div>
+                  ) : currentLogs.map((log, i) => {
+                    const src = getSourceStyle(log.source);
+                    return (
+                      <div key={i} className="bg-[#020617] border border-purple-500/20 rounded-xl p-4 hover:border-purple-500/40 transition-colors">
+                        {/* Top row */}
+                        <div className="flex items-start justify-between gap-2 mb-3">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs text-gray-500 mb-0.5">Email</p>
+                            <p className="text-sm text-gray-300 break-all font-medium">{log.email}</p>
+                          </div>
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold flex-shrink-0
+                            ${log.status === "Mask"
+                              ? "bg-green-900/30 text-green-400 border border-green-500/40"
+                              : "bg-red-900/30 text-red-400 border border-red-500/40"}`}>
+                            {log.status === "Mask" ? (
+                              <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/>
+                              </svg>
+                            ) : (
+                              <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12"/>
+                              </svg>
+                            )}
+                            {log.status}
+                          </span>
+                        </div>
+                        {/* Bottom grid */}
+                        <div className="grid grid-cols-3 gap-3 pt-3 border-t border-purple-900/30">
+                          <div>
+                            <p className="text-xs text-gray-500 mb-0.5">Role</p>
+                            <p className={`text-xs font-medium capitalize ${log.role === 'admin' ? 'text-purple-400' : 'text-blue-400'}`}>
+                              {log.role}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500 mb-0.5">Confidence</p>
+                            <p className="text-xs text-cyan-300 font-mono">
+                              {typeof log.confidence === 'number' ? log.confidence.toFixed(3) : log.confidence}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500 mb-0.5">Source</p>
+                            <span className={`inline-flex items-center gap-1 text-xs font-medium capitalize ${src.color}`}>
+                              {src.icon}
+                              {log.source}
+                            </span>
+                          </div>
+                          <div className="col-span-3">
+                            <p className="text-xs text-gray-500 mb-0.5">Time</p>
+                            <p className="text-xs text-gray-400 font-mono">{log.timestamp}</p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* ── Pagination footer ── */}
+          {!fetchLoading && filteredLogs.length > 0 && (
+            <div className="flex-shrink-0 bg-[#0b1120]/90 border-t border-purple-500/20 px-5 py-3 sm:px-8 rounded-b-2xl">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+
+                {/* Left: per page + count + refresh */}
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <select
+                      value={logsPerPage}
+                      onChange={e => setLogsPerPage(Number(e.target.value))}
+                      className="pl-3 pr-7 py-1.5 bg-[#020617] border border-purple-500/30 rounded-lg text-xs text-white focus:outline-none focus:border-purple-400 appearance-none cursor-pointer"
+                    >
+                      {[10, 25, 50, 75, 100].map(n => <option key={n} value={n}>{n} / page</option>)}
+                    </select>
+                    <svg className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/>
+                    </svg>
+                  </div>
+                  <span className="text-xs text-gray-400 font-mono whitespace-nowrap">
+                    {indexOfFirst + 1}–{indexOfLast} of {filteredLogs.length}
+                  </span>
+                  <button
+                    onClick={() => { setCurrentPage(1); resetFilters(); }}
+                    title="Reset"
+                    className="p-1.5 hover:bg-white/10 rounded-lg transition text-gray-500 hover:text-white"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Right: page numbers */}
+                {totalPages > 1 && (
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+                      disabled={currentPage === 1}
+                      className={`p-1.5 rounded-lg transition ${currentPage === 1 ? 'text-gray-700 cursor-not-allowed' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7"/>
+                      </svg>
+                    </button>
+
+                    {getPageNums().map((p, i) =>
+                      p === '...' ? (
+                        <span key={`e-${i}`} className="w-7 text-center text-gray-600 text-xs">…</span>
+                      ) : (
+                        <button
+                          key={p}
+                          onClick={() => setCurrentPage(p)}
+                          className={`w-7 h-7 rounded-lg text-xs font-medium transition ${
+                            currentPage === p
+                              ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30'
+                              : 'text-gray-400 hover:bg-white/10 hover:text-white'
+                          }`}
+                        >
+                          {p}
+                        </button>
+                      )
+                    )}
+
+                    <button
+                      onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      className={`p-1.5 rounded-lg transition ${currentPage === totalPages ? 'text-gray-700 cursor-not-allowed' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/>
+                      </svg>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
 // ================= ANALYTICS MODAL =================
+const analyticsScrollStyle = `
+  .analytics-scroll::-webkit-scrollbar { width: 5px; }
+  .analytics-scroll::-webkit-scrollbar-track { background: #020617; }
+  .analytics-scroll::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.4); border-radius: 9999px; }
+  .analytics-scroll::-webkit-scrollbar-thumb:hover { background: rgba(168,85,247,0.7); }
+  .analytics-scroll { scrollbar-width: thin; scrollbar-color: rgba(168,85,247,0.4) #020617; }
+`;
 function AnalyticsModal({ onClose, token }) {
   const [data,  setData]  = useState(null);
   const [error, setError] = useState("");
 
-  // useEffect(() => {
-  //   axios.get("http://127.0.0.1:8000/admin/admin-analytics", {
-  //     headers: { Authorization: `Bearer ${token}` }
-  //   })
-  //   .then(res => { setData(res.data); setError(""); })
-  //   .catch(() => setError("Failed to load analytics"));
-  // }, [token]);
-  useEffect(() => {
+ useEffect(() => {
 
   const fetchAnalytics = () => {
     axios.get("http://127.0.0.1:8000/admin/admin-analytics", {
@@ -1300,10 +1364,12 @@ function AnalyticsModal({ onClose, token }) {
   const noMaskRate = 100 - maskRate;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-[3px] z-50 flex items-center justify-center p-3 sm:p-4 lg:p-6 animate-fadeIn">
+    <>
+      <style>{analyticsScrollStyle}</style>
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-[3px] z-50 flex items-center justify-center p-3 sm:p-4 lg:p-6 animate-fadeIn">
 
       {/* ✅ Same container sizing as UploadModal / WebcamModal */}
-      <div className="bg-[#0b1120]/95 backdrop-blur-xl border border-purple-500/40 rounded-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[92vh] overflow-y-auto shadow-[0_0_50px_rgba(168,85,247,0.55)]">
+      <div className="bg-[#0b1120]/95 backdrop-blur-xl border border-purple-500/40 rounded-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[92vh] overflow-y-auto analytics-scroll shadow-[0_0_50px_rgba(168,85,247,0.55)]">
 
         {/* ── Header ── */}
         <div className="sticky top-0 bg-[#0b1120] border-b border-purple-500/30 px-5 py-4 sm:px-8 sm:py-5 flex items-center justify-between z-10">
@@ -1513,6 +1579,7 @@ function AnalyticsModal({ onClose, token }) {
         </div>
       </div>
     </div>
+    </>
   );
 }
 
