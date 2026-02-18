@@ -1249,13 +1249,37 @@ function AnalyticsModal({ onClose, token }) {
   const [data,  setData]  = useState(null);
   const [error, setError] = useState("");
 
+  // useEffect(() => {
+  //   axios.get("http://127.0.0.1:8000/admin/admin-analytics", {
+  //     headers: { Authorization: `Bearer ${token}` }
+  //   })
+  //   .then(res => { setData(res.data); setError(""); })
+  //   .catch(() => setError("Failed to load analytics"));
+  // }, [token]);
   useEffect(() => {
+
+  const fetchAnalytics = () => {
     axios.get("http://127.0.0.1:8000/admin/admin-analytics", {
       headers: { Authorization: `Bearer ${token}` }
     })
-    .then(res => { setData(res.data); setError(""); })
-    .catch(() => setError("Failed to load analytics"));
-  }, [token]);
+    .then(res => {
+      setData(res.data);
+      setError("");
+    })
+    .catch(() => {
+      setError("Failed to load analytics");
+    });
+  };
+
+  // first load
+  fetchAnalytics();
+
+  // 🔥 AUTO REFRESH EVERY 3 SEC (LIVE USERS COUNT)
+  const interval = setInterval(fetchAnalytics, 3000);
+
+  return () => clearInterval(interval);
+
+}, [token]);
 
   // ── Loading state ────────────────────────────────────────
   if (!data && !error) {
