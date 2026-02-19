@@ -1,40 +1,3 @@
-# from fastapi import APIRouter, Depends
-# from mongo_log import collection
-# from dependencies import get_current_user
-# from datetime import datetime, timedelta
-
-# router = APIRouter()
-
-# # =========================
-# # 👤 USER ANALYTICS
-# # =========================
-# @router.get("/user-analytics")
-# def get_user_analytics(current_user=Depends(get_current_user)):
-
-#     email = current_user["email"]
-
-#     # only this user's logs
-#     total = collection.count_documents({"email": email})
-#     mask = collection.count_documents({"email": email, "status":"Mask"})
-#     no_mask = collection.count_documents({"email": email, "status":"No Mask"})
-
-#     webcam = collection.count_documents({"email": email, "source":"webcam"})
-#     upload = collection.count_documents({"email": email, "source":"upload"})
-
-#     today = datetime.utcnow() - timedelta(days=1)
-#     today_count = collection.count_documents({
-#         "email": email,
-#         "timestamp": {"$gte": str(today)}
-#     })
-
-#     return {
-#         "total": total,
-#         "mask": mask,
-#         "no_mask": no_mask,
-#         "webcam": webcam,
-#         "upload": upload,
-#         "today": today_count
-#     }
 from fastapi import APIRouter, Depends
 from mongo_log import collection
 from dependencies import get_current_user
@@ -84,4 +47,20 @@ def get_user_analytics(current_user=Depends(get_current_user)):
         "webcam": webcam_today,  # ✅ Only today
         "upload": upload_today,  # ✅ Only today
         "today": today_count
+    }
+@router.get("/user-logs")
+def get_user_logs(current_user=Depends(get_current_user)):
+    email = current_user["email"]
+
+    # Fetch only THIS user's logs, newest first
+    logs_cursor = collection.find(
+        {"email": email},
+        {"_id": 0}
+    ).sort("timestamp", -1)
+
+    logs = list(logs_cursor)
+
+    return {
+        "logs": logs,
+        "total": len(logs)
     }
