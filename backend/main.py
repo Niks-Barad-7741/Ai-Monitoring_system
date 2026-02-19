@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends
 from routes import auth,dashboard
 from routes import ai_routes
 from fastapi.middleware.cors import CORSMiddleware
-from routes import admin_analytics,user_analytics
+from routes import admin_analytics,user_analytics,user_analytics
 
 
 
