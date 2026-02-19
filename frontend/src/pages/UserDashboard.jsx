@@ -7,6 +7,7 @@ function UserDashboard(){
   const [stats,setStats] = useState(null);
   const [logs,setLogs] = useState([]);
   const [showLogs,setShowLogs] = useState(false);
+  const [showLogsModal,setShowLogsModal] = useState(false);
   const [showAnalyticsModal,setShowAnalyticsModal] = useState(false);
   const [showUploadModal,setShowUploadModal] = useState(false);
   const [showWebcamModal,setShowWebcamModal] = useState(false);
@@ -178,13 +179,13 @@ function UserDashboard(){
 
           {/* View Logs Button */}
           <button
-            onClick={()=>setShowLogs(!showLogs)}
+            onClick={()=>setShowLogsModal(true)}
             className="px-6 sm:px-8 py-3 sm:py-4 rounded-lg bg-yellow-500/10 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition shadow-[0_0_15px_yellow] hover:shadow-[0_0_25px_yellow] text-sm sm:text-base font-medium flex items-center justify-center gap-2"
           >
             <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <span>{showLogs ? "Hide Logs" : "View Logs"}</span>
+            <span>View Logs</span>
           </button>
 
         </div>
@@ -333,6 +334,13 @@ function UserDashboard(){
           onClose={()=>setShowWebcamModal(false)} 
           token={token}
           onSuccess={fetchUser}
+        />
+      )}
+
+      {showLogsModal && (
+        <UserLogsModal
+          onClose={()=>setShowLogsModal(false)}
+          token={token}
         />
       )}
 
