@@ -1,5 +1,6 @@
 import axios from "axios";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function Login(){
 
@@ -7,6 +8,8 @@ function Login(){
   const [password,setPassword] = useState("");
   const [loading,setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  const navigate = useNavigate();
 
   const handleLogin = async (e)=>{
     e.preventDefault();
@@ -77,7 +80,7 @@ function Login(){
           AI Monitoring Login
         </h1>
 
-        {/* Login Form - AUTOCOMPLETE DISABLED */}
+        {/* Login Form */}
         <form onSubmit={handleLogin} onKeyPress={handleKeyPress} autoComplete="off">
           
           {/* Email Input */}
@@ -92,7 +95,7 @@ function Login(){
               id="email"
               name="email-field"
               type="email"
-              placeholder="your.email@example.com"
+              placeholder="your.email@gmail.com"
               value={email}
               className="w-full 
               px-3 py-2.5 sm:px-4 sm:py-3 md:px-5 md:py-3.5
@@ -220,16 +223,32 @@ function Login(){
           </div>
         </div>
 
-        {/* Forgot Password Link */}
+        {/*  Forgot Password Link */}
         <button
           type="button"
+          onClick={() => navigate("/forgot-password")}
           className="w-full text-center text-xs sm:text-sm text-cyan-400 
           hover:text-cyan-300 transition-colors duration-200
-          focus:outline-none focus:underline"
+          focus:outline-none focus:underline mb-4"
           disabled={loading}
         >
           Forgot your password?
         </button>
+
+        {/*  Register Link */}
+        <div className="text-center">
+          <p className="text-xs sm:text-sm text-gray-500">
+            Don't have an account?{" "}
+            <button
+              type="button"
+              onClick={() => navigate("/register")}
+              disabled={loading}
+              className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors duration-200 focus:outline-none focus:underline"
+            >
+              Create Account
+            </button>
+          </p>
+        </div>
 
         {/* Footer */}
         <div className="mt-6 sm:mt-8 text-center">
