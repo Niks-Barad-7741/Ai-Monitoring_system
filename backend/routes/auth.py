@@ -117,3 +117,48 @@ def logout_user(data: dict):
         remove_user(email)
 
     return {"message":"Logged out"}
+
+
+# =========================
+#  VERIFY EMAIL (Forgot Password Step 1)
+# =========================
+@router.post("/verify-email")
+def verify_email(data: dict):
+    email = data.get("email", "").strip().lower()
+
+    if not email:
+        raise HTTPException(status_code=400, detail="Email is required")
+
+    user = users_collection.find_one({"email": email})
+    if not user:
+        raise HTTPException(status_code=404, detail="No account found with this email")
+
+    return {"message": "Email verified successfully"}
+
+
+# =========================
+#  RESET PASSWORD (Forgot Password Step 2)
+# =========================
+@router.post("/reset-password")
+def reset_password(data: dict):
+    email        = data.get("email", "").strip().lower()
+    new_password = data.get("new_password", "")
+
+    if not email:
+        raise HTTPException(status_code=400, detail="Email is required")
+
+    if not new_password or len(new_password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+
+    user = users_collection.find_one({"email": email})
+    if not user:
+        raise HTTPException(status_code=404, detail="No account found with this email")
+
+    hashed = pwd_context.hash(new_password)
+
+    users_collection.update_one(
+        {"email": email},
+        {"$set": {"password": hashed}}
+    )
+
+    return {"message": "Password reset successfully"}
