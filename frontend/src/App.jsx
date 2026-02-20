@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import Login from "./pages/Login";
+import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
 import AdminDashboard from "./pages/AdminDashboard";
 import UserDashboard from "./pages/UserDashboard";
 import UploadDetect from "./pages/UploadDetect";
@@ -16,6 +18,11 @@ function App(){
 
         {/* LOGIN */}
         <Route path="/" element={<Login />} />
+
+        <Route path="/register" element={<Register/>}/>
+        <Route path="/forgot-password" element={<ForgotPassword/>}/>
+
+
 
         {/* ADMIN */}
         <Route path="/admin" element={
