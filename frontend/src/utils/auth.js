@@ -11,6 +11,8 @@ export const getUserRole = () => {
 // logout
 export const logout = () => {
   sessionStorage.removeItem("token");
+  sessionStorage.removeItem("refreshToken");
   sessionStorage.removeItem("role");
+  sessionStorage.removeItem("email");
   window.location.href = "/";
 };
