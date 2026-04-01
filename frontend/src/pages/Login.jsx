@@ -23,22 +23,23 @@ function Login(){
 
     try{
       const res = await axios.post(
-        "http://127.0.0.1:8000/auth/login",
+        "/auth/login",
         {email,password}
       );
 
       sessionStorage.setItem("token", res.data.token);
+      sessionStorage.setItem("refreshToken", res.data.refresh_token);
       sessionStorage.setItem("role", res.data.role);
       sessionStorage.setItem("email", res.data.email);
 
       if(res.data.role === "admin"){
-        window.location="/admin";
+        navigate("/admin");
       }else{
-        window.location="/user";
+        navigate("/user");
       }
 
     }catch(error){
-      const errorMsg = error.response?.data?.message || "Invalid Login";
+      const errorMsg = error.response?.data?.detail || "Invalid Login";
       alert(errorMsg);
     }finally{
       setLoading(false);
@@ -54,29 +55,28 @@ function Login(){
   return(
     <div className="min-h-screen flex items-center justify-center 
     px-4 sm:px-6 lg:px-8 py-8 sm:py-12
-    bg-gradient-to-br from-[#070716] via-[#0b0f19] to-[#020617] text-white">
+    bg-[#1e1e2e] text-white">
 
       {/* Login Card */}
       <div className="w-full max-w-sm sm:max-w-md lg:max-w-lg 
-      bg-[#111827]/80 backdrop-blur-lg 
+      bg-[#282828] 
       p-6 sm:p-8 md:p-10 lg:p-12
-      rounded-2xl shadow-2xl border border-cyan-500/20
-      hover:border-cyan-500/40 transition-all duration-300">
+      rounded-2xl shadow-2xl border border-[#3a3a4a]
+      hover:border-[#FFC0C1]/40 transition-all duration-300">
 
         {/* Logo Glow */}
         <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24
         mx-auto mb-6 sm:mb-8 
         rounded-full 
-        bg-gradient-to-r from-cyan-400 to-purple-600 
-        blur-2xl opacity-50 animate-pulse"></div>
+        bg-gradient-to-r from-[#FFC0C1] to-[#97C9DB] 
+        blur-2xl opacity-40 animate-pulse"></div>
 
         {/* Title */}
         <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl
         mb-6 sm:mb-8 
         text-center font-bold 
         tracking-wide sm:tracking-wider 
-        text-cyan-400 
-        drop-shadow-[0_0_12px_cyan]">
+        text-[#FFC0C1]">
           AI Monitoring Login
         </h1>
 
@@ -101,13 +101,12 @@ function Login(){
               px-3 py-2.5 sm:px-4 sm:py-3 md:px-5 md:py-3.5
               text-sm sm:text-base
               text-white
-              bg-black/40 
-              border border-gray-600 
+              bg-[#1e1e2e] 
+              border border-[#3a3a4a] 
               rounded-lg 
               focus:outline-none 
-              focus:border-cyan-400 
-              focus:ring-2 focus:ring-cyan-400/50
-              focus:shadow-[0_0_10px_cyan] 
+              focus:border-[#97C9DB] 
+              focus:ring-2 focus:ring-[#97C9DB]/30
               transition-all duration-300
               placeholder:text-gray-500"
               onChange={(e)=>setEmail(e.target.value)}
@@ -138,13 +137,12 @@ function Login(){
                 px-3 py-2.5 sm:px-4 sm:py-3 md:px-5 md:py-3.5
                 text-sm sm:text-base
                 text-white
-                bg-black/40 
-                border border-gray-600 
+                bg-[#1e1e2e] 
+                border border-[#3a3a4a] 
                 rounded-lg 
                 focus:outline-none 
-                focus:border-cyan-400 
-                focus:ring-2 focus:ring-cyan-400/50
-                focus:shadow-[0_0_10px_cyan] 
+                focus:border-[#97C9DB] 
+                focus:ring-2 focus:ring-[#97C9DB]/30
                 transition-all duration-300
                 placeholder:text-gray-500
                 pr-12"
@@ -161,9 +159,9 @@ function Login(){
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2
-                text-gray-400 hover:text-cyan-400 
+                text-gray-400 hover:text-[#97C9DB] 
                 transition-colors duration-200
-                focus:outline-none focus:text-cyan-400"
+                focus:outline-none focus:text-[#97C9DB]"
                 disabled={loading}
                 tabIndex="-1"
                 aria-label={showPassword ? "Hide password" : "Show password"}
@@ -182,7 +180,7 @@ function Login(){
             </div>
           </div>
 
-          {/* Login Button */}
+          {/* Login Button — MLU-Explain flat pastel style */}
           <button
             type="submit"
             disabled={loading}
@@ -190,12 +188,11 @@ function Login(){
             py-2.5 sm:py-3 md:py-3.5
             text-sm sm:text-base md:text-lg
             rounded-lg font-semibold tracking-wide
-            bg-gradient-to-r from-cyan-500 to-blue-600 
-            hover:from-cyan-400 hover:to-blue-500
-            hover:scale-[1.02] active:scale-[0.98]
-            transition-all duration-300 shadow-lg
-            hover:shadow-cyan-500/50
-            focus:outline-none focus:ring-2 focus:ring-cyan-400/50
+            bg-[#FFC0C1] text-[#1e1e2e]
+            border-2 border-[#1e1e2e]
+            hover:bg-[#ffb0b1] hover:scale-[1.02] active:scale-[0.98]
+            transition-all duration-300
+            focus:outline-none focus:ring-2 focus:ring-[#FFC0C1]/50
             ${loading ? "opacity-60 cursor-not-allowed" : "hover:shadow-xl"}`}
           >
             {loading ? (
@@ -216,10 +213,10 @@ function Login(){
         {/* Divider */}
         <div className="relative my-6 sm:my-8">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-600"></div>
+            <div className="w-full border-t border-[#3a3a4a]"></div>
           </div>
           <div className="relative flex justify-center text-xs sm:text-sm">
-            <span className="px-2 sm:px-4 bg-[#111827] text-gray-400">or</span>
+            <span className="px-2 sm:px-4 bg-[#282828] text-gray-400">or</span>
           </div>
         </div>
 
@@ -227,8 +224,8 @@ function Login(){
         <button
           type="button"
           onClick={() => navigate("/forgot-password")}
-          className="w-full text-center text-xs sm:text-sm text-cyan-400 
-          hover:text-cyan-300 transition-colors duration-200
+          className="w-full text-center text-xs sm:text-sm text-[#97C9DB] 
+          hover:text-[#b0dae8] transition-colors duration-200
           focus:outline-none focus:underline mb-4"
           disabled={loading}
         >
@@ -243,7 +240,7 @@ function Login(){
               type="button"
               onClick={() => navigate("/register")}
               disabled={loading}
-              className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors duration-200 focus:outline-none focus:underline"
+              className="text-[#97C9DB] hover:text-[#b0dae8] font-medium transition-colors duration-200 focus:outline-none focus:underline"
             >
               Create Account
             </button>
