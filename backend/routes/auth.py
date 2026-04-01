@@ -1,30 +1,35 @@
 from fastapi import APIRouter, HTTPException
-from database import users_collection
+from database import users_collection, refresh_tokens_collection
 from models import UserRegister, UserLogin
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
-from jose import jwt
-from active_users import add_user,remove_user
-from security import SECRET_KEY
+from active_users import add_user, remove_user
+from security import create_access_token, create_refresh_token, REFRESH_TOKEN_EXPIRE_DAYS
 import re
+import hashlib
 
 router = APIRouter()
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
-
 
 # =========================
-#  CREATE TOKEN
+#  HELPER — hash + save refresh token to MongoDB
 # =========================
-def create_access_token(data: dict):
-    to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    token = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return token
+def hash_token(token: str) -> str:
+    """SHA256 hash so plain token is never stored in DB"""
+    return hashlib.sha256(token.encode()).hexdigest()
+
+def save_refresh_token(email: str, token: str):
+    # 🧹 Delete any old refresh tokens for this user (prevents accumulation)
+    refresh_tokens_collection.delete_many({"email": email})
+    # 🔒 Store only the hashed version
+    refresh_tokens_collection.insert_one({
+        "token": hash_token(token),
+        "email": email,
+        "created_at": datetime.utcnow(),
+        "expires_at": datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    })
 
 
 # =========================
@@ -67,16 +72,19 @@ def register_user(user: UserRegister):
 
     users_collection.insert_one(new_user)
 
-    #  CREATE TOKEN ALSO DURING REGISTER
-    token = create_access_token({
+    #  CREATE TOKENS DURING REGISTER
+    access_token = create_access_token({
         "email": user.email,
         "role": user.role,
         "name": user.name
     })
+    refresh_token = create_refresh_token()
+    save_refresh_token(user.email, refresh_token)
 
     return {
         "message": "User registered successfully",
-        "token": token   # ← token created but no auto login
+        "token": access_token,
+        "refresh_token": refresh_token
     }
 
 
@@ -90,19 +98,22 @@ def login_user(user: UserLogin):
     if not pwd_context.verify(user.password, db_user["password"]):
         raise HTTPException(status_code=401, detail="Invalid password")
 
-    #  CREATE JWT TOKEN
-    token = create_access_token({
+    #  CREATE ACCESS + REFRESH TOKEN
+    access_token = create_access_token({
         "email": db_user["email"],
         "role": db_user["role"],
         "name": db_user["name"]
     })
+    refresh_token = create_refresh_token()
+    save_refresh_token(db_user["email"], refresh_token)
 
     #  ADD ACTIVE USER
     add_user(db_user["email"])
 
     return {
         "message": "Login successful",
-        "token": token,
+        "token": access_token,
+        "refresh_token": refresh_token,
         "email": db_user["email"],
         "role": db_user["role"],
         "name": db_user["name"]
@@ -112,11 +123,61 @@ def login_user(user: UserLogin):
 def logout_user(data: dict):
 
     email = data.get("email")
+    refresh_token = data.get("refresh_token")
 
     if email:
         remove_user(email)
 
-    return {"message":"Logged out"}
+    # 🗑️ Delete refresh token from MongoDB (revoke it)
+    if refresh_token:
+        refresh_tokens_collection.delete_one({"token": hash_token(refresh_token)})
+    elif email:
+        # If no specific token provided, delete all tokens for this user
+        refresh_tokens_collection.delete_many({"email": email})
+
+    return {"message": "Logged out"}
+
+
+# =========================
+#  REFRESH TOKEN (Silent Re-auth)
+# =========================
+@router.post("/refresh")
+def refresh_access_token(data: dict):
+
+    refresh_token = data.get("refresh_token")
+
+    if not refresh_token:
+        raise HTTPException(status_code=400, detail="Refresh token is required")
+
+    # 🔍 Look up refresh token in MongoDB (hash it first to compare)
+    hashed = hash_token(refresh_token)
+    stored = refresh_tokens_collection.find_one({"token": hashed})
+
+    if not stored:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+    # ⏰ Check if refresh token has expired
+    if stored["expires_at"] < datetime.utcnow():
+        refresh_tokens_collection.delete_one({"token": hashed})
+        raise HTTPException(status_code=401, detail="Refresh token expired")
+
+    # 👤 Get the user from DB
+    user = users_collection.find_one({"email": stored["email"]})
+    if not user:
+        refresh_tokens_collection.delete_one({"token": refresh_token})
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # ✅ Generate fresh access token
+    new_access_token = create_access_token({
+        "email": user["email"],
+        "role": user["role"],
+        "name": user["name"]
+    })
+
+    return {
+        "token": new_access_token,
+        "message": "Token refreshed successfully"
+    }
 
 
 # =========================
