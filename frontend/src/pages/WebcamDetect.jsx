@@ -130,7 +130,7 @@ function WebcamDetect(){
 
     try{
       const res = await axios.post(
-        "http://127.0.0.1:8000/ai/detect-webcam",
+        "/ai/detect-webcam",
         {image:base64Image},
         { headers:{Authorization:`Bearer ${token}`} }
       );
@@ -193,8 +193,8 @@ function WebcamDetect(){
     px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
 
       <div className="w-full max-w-sm sm:max-w-2xl lg:max-w-5xl 
-      bg-[#070b18]/70 backdrop-blur-xl 
-      border border-purple-500/20 
+      bg-[#070b18]/70 
+      border border-[#3a3a4a] 
       rounded-2xl sm:rounded-3xl 
       p-4 sm:p-6 lg:p-10 
       shadow-2xl">
@@ -203,7 +203,7 @@ function WebcamDetect(){
         <div className="text-center mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl 
           font-bold mb-2 sm:mb-3
-          bg-gradient-to-r from-cyan-400 to-purple-500 
+          bg-gradient-to-r from-[#97C9DB] to-[#FFC0C1] 
           bg-clip-text text-transparent
           drop-shadow-lg">
              LIVE AI MONITOR
@@ -220,8 +220,8 @@ function WebcamDetect(){
           className="relative flex justify-center 
           mb-6 sm:mb-8
           rounded-xl sm:rounded-2xl overflow-hidden
-          border-2 border-purple-500/50
-          shadow-[0_0_30px_rgba(147,51,234,0.4)] sm:shadow-[0_0_40px_rgba(147,51,234,0.5)]
+          border-2 border-[#FFC0C1]/50
+          shadow-xl
           bg-black"
         >
           
@@ -243,9 +243,8 @@ function WebcamDetect(){
           {scaledBox && running && (
             <div
               className={`absolute border-4 rounded-lg transition-all duration-200 pointer-events-none ${
-                result==="Mask"
-                ? "border-green-400 shadow-[0_0_25px_#22c55e]"
-                : "border-red-500 shadow-[0_0_25px_#ef4444]"
+                result === "Mask" ? "border-[#B5EAD7] shadow-[0_0_20px_#B5EAD7]"
+                : "border-[#FFB7B2] shadow-[0_0_20px_#FFB7B2]"
               }`}
               style={{
                 left: `${scaledBox.x}px`,
@@ -258,8 +257,8 @@ function WebcamDetect(){
               <div className={`absolute -top-6 sm:-top-8 left-0 
               px-2 sm:px-3 py-1 rounded text-xs sm:text-sm font-bold whitespace-nowrap
               ${result==="Mask" 
-                ? "bg-green-400 text-black" 
-                : "bg-red-500 text-white"
+                ? "bg-[#B5EAD7] text-[#1e1e2e]" 
+                : "bg-[#FFB7B2] text-[#1e1e2e]"
               }`}>
                 {result}
               </div>
@@ -285,8 +284,8 @@ function WebcamDetect(){
             <div className="absolute inset-0 flex flex-col items-center justify-center 
             bg-black/80 backdrop-blur-sm">
               <div className="animate-spin rounded-full h-12 w-12 sm:h-16 sm:w-16 
-              border-b-2 border-purple-400 mb-4"></div>
-              <p className="text-sm sm:text-base text-purple-400">Starting camera...</p>
+              border-b-2 border-[#FFC0C1] mb-4"></div>
+              <p className="text-sm sm:text-base text-[#FFC0C1]">Starting camera...</p>
             </div>
           )}
 
@@ -296,11 +295,11 @@ function WebcamDetect(){
             flex items-center gap-2 
             bg-black/60 backdrop-blur-sm 
             px-3 py-1.5 sm:px-4 sm:py-2 
-            rounded-full border border-red-500/50
+            rounded-full border border-[#FFB7B2]/40
             z-10">
               <span className="relative flex h-2 w-2 sm:h-3 sm:w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 sm:h-3 sm:w-3 bg-red-500"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FFB7B2] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 sm:h-3 sm:w-3 bg-[#FFB7B2]"></span>
               </span>
               <span className="text-xs sm:text-sm font-semibold text-white">LIVE</span>
             </div>
@@ -314,9 +313,9 @@ function WebcamDetect(){
         {/* ERROR MESSAGE */}
         {cameraError && (
           <div className="mb-6 sm:mb-8 p-3 sm:p-4 
-          rounded-lg border border-red-500/40 
-          bg-red-500/10">
-            <p className="text-xs sm:text-sm text-red-400 text-center flex items-center justify-center gap-2">
+          rounded-lg border border-[#FFB7B2]/30 
+          bg-[#FFB7B2]/10">
+            <p className="text-xs sm:text-sm text-[#FFB7B2] text-center flex items-center justify-center gap-2">
               <svg className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -340,7 +339,7 @@ function WebcamDetect(){
               flex items-center justify-center gap-2
               ${isLoading 
                 ? "bg-gray-700 cursor-not-allowed text-gray-400"
-                : "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
+                : "bg-[#FFC0C1] text-[#1e1e2e] hover:bg-[#ffb0b1] hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
               }`}
             >
               <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20">
@@ -353,8 +352,7 @@ function WebcamDetect(){
               onClick={stopCamera}
               className="px-6 sm:px-8 py-2.5 sm:py-3 
               rounded-xl 
-              bg-gradient-to-r from-red-500 to-pink-600 
-              hover:from-red-400 hover:to-pink-500
+              bg-[#FFB7B2] text-[#1e1e2e] hover:bg-[#ffc6c2]
               hover:scale-[1.02] active:scale-[0.98]
               transition-all duration-300
               font-semibold shadow-lg hover:shadow-xl
@@ -394,12 +392,8 @@ function WebcamDetect(){
           bg-black/40 backdrop-blur-sm
           animate-fadeIn"
           style={{
-            borderColor: result === "Mask" ? "rgb(34, 197, 94)" : result === "No Mask" ? "rgb(239, 68, 68)" : "rgb(234, 179, 8)",
-            boxShadow: result === "Mask" 
-              ? "0 0 25px rgba(34, 197, 94, 0.4)" 
-              : result === "No Mask"
-              ? "0 0 25px rgba(239, 68, 68, 0.4)"
-              : "0 0 25px rgba(234, 179, 8, 0.4)"
+            borderColor: result === "Mask" ? "#B5EAD7" : result === "No Mask" ? "#FFB7B2" : "#FFDAC1",
+            boxShadow: "none"
           }}>
 
             {/* Status Label */}
@@ -411,25 +405,25 @@ function WebcamDetect(){
             <div className="flex items-center justify-center gap-3 sm:gap-4 mb-3 sm:mb-4">
               {result === "Mask" ? (
                 <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 
-                rounded-full bg-green-500/20 
+                rounded-full bg-[#B5EAD7]/20 
                 flex items-center justify-center">
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#B5EAD7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
               ) : result === "No Mask" ? (
                 <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 
-                rounded-full bg-red-500/20 
+                rounded-full bg-[#FFB7B2]/20 
                 flex items-center justify-center">
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#FFB7B2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </div>
               ) : (
                 <div className="w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 
-                rounded-full bg-yellow-500/20 
+                rounded-full bg-[#FFDAC1]/20 
                 flex items-center justify-center">
-                  <svg className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-[#FFDAC1]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                   </svg>
                 </div>
@@ -437,16 +431,16 @@ function WebcamDetect(){
 
               <div className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl 
               font-bold 
-              ${result === "Mask" ? "text-green-400" :
-                result === "No Mask" ? "text-red-400" :
-                "text-yellow-400"
+              ${result === "Mask" ? "text-[#B5EAD7]" :
+                result === "No Mask" ? "text-[#FFB7B2]" :
+                "text-[#FFDAC1]"
               }`}>
                 {result}
               </div>
             </div>
 
             {/* Confidence */}
-            <div className="flex items-center justify-center gap-2 text-cyan-300">
+            <div className="flex items-center justify-center gap-2 text-[#97C9DB]">
               <span className="text-sm sm:text-base lg:text-lg font-semibold">
                 Confidence: {confidence}%
               </span>

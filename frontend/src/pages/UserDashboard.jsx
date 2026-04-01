@@ -21,7 +21,7 @@ function UserDashboard(){
   // FETCH USER DATA
   // ===============================
   const fetchUser = ()=>{
-    axios.get("http://127.0.0.1:8000/dashboard/user-dashboard",{
+    axios.get("/dashboard/user-dashboard",{
       headers:{ Authorization:`Bearer ${token}` }
     })
     .then(res=>{
@@ -44,7 +44,7 @@ function UserDashboard(){
     let ws;
 
     const connectSocket = ()=>{
-      ws = new WebSocket("ws://127.0.0.1:8000/ws/live");
+      ws = new WebSocket(import.meta.env.MODE === 'development' ? 'ws://localhost:5173/ws/live' : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws/live`);
 
       ws.onmessage = ()=> fetchUser();
 
@@ -60,9 +60,10 @@ function UserDashboard(){
   // ===============================
   const logout = async () => {
     const email = sessionStorage.getItem("email");
+    const refresh_token = sessionStorage.getItem("refreshToken");
 
     try{
-      await axios.post("http://127.0.0.1:8000/auth/logout", { email });
+      await axios.post("/auth/logout", { email, refresh_token });
     }catch(err){
       console.log("Logout sync error (ignored)");
     }
@@ -72,16 +73,16 @@ function UserDashboard(){
   };
 
   if(!stats) return (
-    <div className="min-h-screen flex items-center justify-center bg-[#020617] text-cyan-400">
+    <div className="min-h-screen flex items-center justify-center bg-[#1e1e2e] text-[#97C9DB]">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400 mx-auto mb-4"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#97C9DB] mx-auto mb-4"></div>
         <p className="text-sm sm:text-base">Loading Dashboard...</p>
       </div>
     </div>
   );
 
   return(
-    <div className="min-h-screen bg-[#020617] text-white">
+    <div className="min-h-screen bg-[#1e1e2e] text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
 
         {/* ================= HEADER ================= */}
@@ -90,19 +91,19 @@ function UserDashboard(){
           <div className="flex flex-col space-y-4 sm:space-y-6 lg:flex-row lg:items-center lg:justify-between lg:space-y-0">
             
             <div className="text-center lg:text-left flex-1">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-wide sm:tracking-widest text-cyan-400 drop-shadow-[0_0_15px_cyan]">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold tracking-wide sm:tracking-widest text-[#97C9DB]">
                 User Control Panel
               </h1>
 
               <p className="mt-2 text-xs sm:text-sm md:text-base text-gray-400 px-2 sm:px-0">
-                Logged in as <span className="text-cyan-300 break-all">{email}</span>
+                Logged in as <span className="text-[#97C9DB] break-all">{email}</span>
               </p>
             </div>
 
             <div className="flex justify-center lg:justify-end">
               <button 
                 onClick={logout}
-                className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 bg-red-600 rounded-lg hover:bg-red-700 transition shadow-lg text-sm sm:text-base font-medium flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 bg-[#FFB7B2] text-[#1e1e2e] rounded-lg hover:bg-[#ffc6c2] transition shadow-lg text-sm sm:text-base font-medium flex items-center justify-center gap-2"
               >
                 <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -118,23 +119,23 @@ function UserDashboard(){
         {/* ================= STATS ================= */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-10 lg:mb-12">
 
-          <div className="bg-[#020617] border border-cyan-500 rounded-xl p-5 sm:p-6 lg:p-8 text-center shadow-[0_0_15px_cyan] hover:shadow-[0_0_25px_cyan] transition-shadow">
+          <div className="bg-[#1e1e2e] border border-[#97C9DB] rounded-xl p-5 sm:p-6 lg:p-8 text-center shadow-lg hover:shadow-xl transition-shadow">
             <h2 className="text-sm sm:text-base text-gray-400 font-medium">Total Detections</h2>
-            <p className="text-3xl sm:text-4xl lg:text-5xl text-cyan-300 mt-2 sm:mt-3 font-bold">
+            <p className="text-3xl sm:text-4xl lg:text-5xl text-[#97C9DB] mt-2 sm:mt-3 font-bold">
               {stats.your_total_detections}
             </p>
           </div>
 
-          <div className="bg-[#020617] border border-green-400 rounded-xl p-5 sm:p-6 lg:p-8 text-center shadow-[0_0_15px_green] hover:shadow-[0_0_25px_green] transition-shadow">
+          <div className="bg-[#1e1e2e] border border-[#B5EAD7] rounded-xl p-5 sm:p-6 lg:p-8 text-center shadow-lg hover:shadow-xl transition-shadow">
             <h2 className="text-sm sm:text-base text-gray-400 font-medium">Mask Detected</h2>
-            <p className="text-3xl sm:text-4xl lg:text-5xl text-green-400 mt-2 sm:mt-3 font-bold">
+            <p className="text-3xl sm:text-4xl lg:text-5xl text-[#B5EAD7] mt-2 sm:mt-3 font-bold">
               {stats.mask_detected}
             </p>
           </div>
 
-          <div className="bg-[#020617] border border-red-500 rounded-xl p-5 sm:p-6 lg:p-8 text-center shadow-[0_0_15px_red] hover:shadow-[0_0_25px_red] transition-shadow sm:col-span-2 lg:col-span-1">
+          <div className="bg-[#1e1e2e] border border-[#FFB7B2] rounded-xl p-5 sm:p-6 lg:p-8 text-center shadow-lg hover:shadow-xl transition-shadow sm:col-span-2 lg:col-span-1">
             <h2 className="text-sm sm:text-base text-gray-400 font-medium">No Mask Detected</h2>
-            <p className="text-3xl sm:text-4xl lg:text-5xl text-red-400 mt-2 sm:mt-3 font-bold">
+            <p className="text-3xl sm:text-4xl lg:text-5xl text-[#FFB7B2] mt-2 sm:mt-3 font-bold">
               {stats.no_mask_detected}
             </p>
           </div>
@@ -147,7 +148,7 @@ function UserDashboard(){
           {/* Upload Button */}
           <button
             onClick={()=>setShowUploadModal(true)}
-            className="px-6 sm:px-8 py-3 sm:py-4 rounded-lg bg-cyan-500/10 border border-cyan-400 hover:bg-cyan-400 hover:text-black transition shadow-[0_0_15px_cyan] hover:shadow-[0_0_25px_cyan] text-sm sm:text-base font-medium flex items-center justify-center gap-2"
+            className="px-6 sm:px-8 py-3 sm:py-4 rounded-lg bg-[#97C9DB]/10 border border-[#97C9DB] hover:bg-[#97C9DB] hover:text-black transition shadow-lg hover:shadow-xl text-sm sm:text-base font-medium flex items-center justify-center gap-2"
           >
             <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -158,7 +159,7 @@ function UserDashboard(){
           {/* Webcam Button */}
           <button
             onClick={()=>setShowWebcamModal(true)}
-            className="px-6 sm:px-8 py-3 sm:py-4 rounded-lg bg-purple-500/10 border border-purple-400 hover:bg-purple-400 hover:text-black transition shadow-[0_0_15px_purple] hover:shadow-[0_0_25px_purple] text-sm sm:text-base font-medium flex items-center justify-center gap-2"
+            className="px-6 sm:px-8 py-3 sm:py-4 rounded-lg bg-[#FFC0C1]/10 border border-[#FFC0C1] hover:bg-[#FFC0C1] hover:text-black transition shadow-lg hover:shadow-xl text-sm sm:text-base font-medium flex items-center justify-center gap-2"
           >
             <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -169,7 +170,7 @@ function UserDashboard(){
           {/* Analytics Button */}
           <button
             onClick={()=>setShowAnalyticsModal(true)}
-            className="px-6 sm:px-8 py-3 sm:py-4 rounded-lg bg-blue-500/10 border border-blue-400 hover:bg-blue-400 hover:text-black transition shadow-[0_0_15px_blue] hover:shadow-[0_0_25px_blue] text-sm sm:text-base font-medium flex items-center justify-center gap-2"
+            className="px-6 sm:px-8 py-3 sm:py-4 rounded-lg bg-[#97C9DB]/10 border border-[#97C9DB] hover:bg-[#85bdd2] hover:text-black transition shadow-lg hover:shadow-xl text-sm sm:text-base font-medium flex items-center justify-center gap-2"
           >
             <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -180,7 +181,7 @@ function UserDashboard(){
           {/* View Logs Button */}
           <button
             onClick={()=>setShowLogsModal(true)}
-            className="px-6 sm:px-8 py-3 sm:py-4 rounded-lg bg-yellow-500/10 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition shadow-[0_0_15px_yellow] hover:shadow-[0_0_25px_yellow] text-sm sm:text-base font-medium flex items-center justify-center gap-2"
+            className="px-6 sm:px-8 py-3 sm:py-4 rounded-lg bg-[#FFDAC1]/10 border border-[#FFDAC1] hover:bg-[#FFDAC1] hover:text-black transition shadow-lg hover:shadow-xl text-sm sm:text-base font-medium flex items-center justify-center gap-2"
           >
             <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -194,24 +195,24 @@ function UserDashboard(){
         {showLogs && (
           <div className="animate-fadeIn">
             <div className="flex items-center gap-3 mb-4 sm:mb-6">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-yellow-500/30 to-orange-500/30 rounded-lg flex items-center justify-center border border-yellow-400/30">
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-[#FFDAC1]/30 to-[#FFDAC1]/30 rounded-lg flex items-center justify-center border border-[#FFDAC1]/30">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-[#FFDAC1]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
-              <h2 className="text-lg sm:text-xl lg:text-2xl text-cyan-300 font-semibold">
+              <h2 className="text-lg sm:text-xl lg:text-2xl text-[#97C9DB] font-semibold">
                 Your Detection Logs
               </h2>
             </div>
 
             {/* Desktop View - Table */}
-            <div className="hidden lg:block w-full overflow-x-auto border border-cyan-500 rounded-lg shadow-[0_0_15px_cyan]">
+            <div className="hidden lg:block w-full overflow-x-auto border border-[#97C9DB] rounded-lg shadow-lg">
               
               <div className="max-h-[500px] overflow-y-auto">
 
                 <table className="w-full text-sm">
 
-                  <thead className="bg-[#020617] border-b border-cyan-500 text-cyan-300 sticky top-0 z-10">
+                  <thead className="bg-[#1e1e2e] border-b border-[#97C9DB] text-[#97C9DB] sticky top-0 z-10">
                     <tr>
                       <th className="p-4 text-left font-semibold">Status</th>
                       <th className="p-4 text-center font-semibold">Confidence</th>
@@ -229,23 +230,23 @@ function UserDashboard(){
                       </tr>
                     ) : (
                       logs.map((log,index)=>(
-                        <tr key={index} className="border-b border-cyan-900 hover:bg-cyan-900/30 transition-colors">
+                        <tr key={index} className="border-b border-[#97C9DB] hover:bg-[#97C9DB]/30 transition-colors">
 
                           <td className="text-left p-4">
                             <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${
                               log.status==="Mask"
-                              ? "bg-green-900/40 text-green-400 border border-green-500"
-                              : "bg-red-900/40 text-red-400 border border-red-500"
+                              ? "bg-green-900/40 text-[#B5EAD7] border border-[#B5EAD7]"
+                              : "bg-red-900/40 text-[#FFB7B2] border border-[#FFB7B2]"
                             }`}>
                               {log.status}
                             </span>
                           </td>
 
-                          <td className="text-center p-4 text-cyan-300 font-mono">
+                          <td className="text-center p-4 text-[#97C9DB] font-mono">
                             {log.confidence?.toFixed(3)}
                           </td>
 
-                          <td className="text-center p-4 text-yellow-300 capitalize">
+                          <td className="text-center p-4 text-[#FFDAC1] capitalize">
                             {log.source}
                           </td>
 
@@ -266,7 +267,7 @@ function UserDashboard(){
             {/* Mobile & Tablet View - Cards */}
             <div className="lg:hidden space-y-4">
               {logs.length === 0 ? (
-                <div className="bg-[#020617] border border-cyan-500 rounded-lg p-6 text-center text-gray-400">
+                <div className="bg-[#1e1e2e] border border-[#97C9DB] rounded-lg p-6 text-center text-gray-400">
                   <svg className="w-12 h-12 mx-auto mb-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
                   </svg>
@@ -276,15 +277,15 @@ function UserDashboard(){
                 logs.map((log,index)=>(
                   <div 
                     key={index} 
-                    className="bg-[#020617] border border-cyan-500 rounded-lg p-4 sm:p-5 shadow-[0_0_10px_cyan] hover:shadow-[0_0_20px_cyan] transition-shadow"
+                    className="bg-[#1e1e2e] border border-[#97C9DB] rounded-lg p-4 sm:p-5 shadow-[0_0_10px_cyan] hover:shadow-[0_0_20px_cyan] transition-shadow"
                   >
                     
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 gap-2">
                       <div>
                         <span className={`inline-block px-4 py-1.5 rounded-full text-sm font-bold ${
                           log.status==="Mask"
-                          ? "bg-green-900/40 text-green-400 border border-green-500"
-                          : "bg-red-900/40 text-red-400 border border-red-500"
+                          ? "bg-green-900/40 text-[#B5EAD7] border border-[#B5EAD7]"
+                          : "bg-red-900/40 text-[#FFB7B2] border border-[#FFB7B2]"
                         }`}>
                           {log.status}
                         </span>
@@ -298,13 +299,13 @@ function UserDashboard(){
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       <div>
                         <p className="text-xs text-gray-400 mb-1">Confidence</p>
-                        <p className="text-cyan-300 font-mono font-semibold">
+                        <p className="text-[#97C9DB] font-mono font-semibold">
                           {log.confidence?.toFixed(3)}
                         </p>
                       </div>
                       <div>
                         <p className="text-xs text-gray-400 mb-1">Source</p>
-                        <p className="text-yellow-300 font-medium capitalize">
+                        <p className="text-[#FFDAC1] font-medium capitalize">
                           {log.source}
                         </p>
                       </div>
@@ -397,7 +398,7 @@ function UploadModal({ onClose, token, onSuccess }) {
     formData.append("file", file);
     try {
       const res = await axios.post(
-        "http://127.0.0.1:8000/ai/detect-image",
+        "/ai/detect-image",
         formData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -415,23 +416,23 @@ function UploadModal({ onClose, token, onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-[3px] z-50 flex items-center justify-center p-3 sm:p-4 lg:p-6 animate-fadeIn">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-3 sm:p-4 lg:p-6 animate-fadeIn">
       <div
-        className="bg-[#0b1120]/95 backdrop-blur-xl border border-cyan-500/40 rounded-2xl w-full max-w-4xl shadow-[0_0_50px_rgba(6,182,212,0.45)] flex flex-col"
+        className="bg-[#282828] border border-[#97C9DB]/30 rounded-2xl w-full max-w-4xl shadow-2xl flex flex-col"
         style={{ maxHeight: "92vh" }}
       >
 
         {/* ── Header ── */}
-        <div className="flex-shrink-0 bg-[#0b1120] border-b border-cyan-500/30 px-5 py-4 sm:px-8 sm:py-5 flex items-center justify-between rounded-t-2xl">
+        <div className="flex-shrink-0 bg-[#282828] border-b border-[#3a3a4a] px-5 py-4 sm:px-8 sm:py-5 flex items-center justify-between rounded-t-2xl">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center flex-shrink-0">
-              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#97C9DB]/15 border border-[#97C9DB]/30 flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-[#97C9DB]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
                   d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
             </div>
             <div>
-              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-cyan-400">Upload Image</h2>
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#97C9DB]">Upload Image</h2>
               <p className="text-xs text-gray-500 mt-0.5">JPG, PNG or WebP · Max 10MB</p>
             </div>
           </div>
@@ -455,11 +456,9 @@ function UploadModal({ onClose, token, onSuccess }) {
                   aspectRatio: "16/9",
                   border: "2px solid",
                   borderColor: result
-                    ? (isMask ? "rgba(34,197,94,0.65)" : "rgba(239,68,68,0.65)")
-                    : "rgba(6,182,212,0.4)",
-                  boxShadow: result
-                    ? (isMask ? "0 0 28px rgba(34,197,94,0.25)" : "0 0 28px rgba(239,68,68,0.25)")
-                    : "none",
+                    ? (isMask ? "rgba(181,234,215,0.65)" : "rgba(255,183,178,0.65)")
+                    : "rgba(151,201,219,0.4)",
+                  boxShadow: "none",
                   transition: "border-color 0.3s, box-shadow 0.3s"
                 }}
               >
@@ -478,14 +477,14 @@ function UploadModal({ onClose, token, onSuccess }) {
                     />
                     <div className="relative z-10 flex items-center gap-3 sm:gap-4 px-5 py-4 sm:px-7 sm:py-5">
                       <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 flex-shrink-0
-                        ${isMask ? "bg-green-500/25 border-green-500/50" : "bg-red-500/25 border-red-500/50"}`}>
+                        ${isMask ? "bg-[#B5EAD7]/25 border-[#B5EAD7]/40" : "bg-[#FFB7B2]/25 border-[#FFB7B2]/40"}`}>
                         {isMask ? (
-                          <svg className="w-5 h-5 sm:w-6 sm:h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-5 h-5 sm:w-6 sm:h-6 text-[#B5EAD7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2}
                               d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                           </svg>
                         ) : (
-                          <svg className="w-5 h-5 sm:w-6 sm:h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-5 h-5 sm:w-6 sm:h-6 text-[#FFB7B2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2}
                               d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                           </svg>
@@ -493,10 +492,10 @@ function UploadModal({ onClose, token, onSuccess }) {
                       </div>
                       <div>
                         <p className={`text-base sm:text-xl lg:text-2xl font-bold tracking-widest leading-tight
-                          ${isMask ? "text-green-400" : "text-red-400"}`}>
+                          ${isMask ? "text-[#B5EAD7]" : "text-[#FFB7B2]"}`}>
                           {isMask ? "MASK DETECTED" : "NO MASK DETECTED"}
                         </p>
-                        <p className={`text-xs sm:text-sm mt-0.5 ${isMask ? "text-green-300/70" : "text-red-300/70"}`}>
+                        <p className={`text-xs sm:text-sm mt-0.5 ${isMask ? "text-[#B5EAD7]/70" : "text-[#FFB7B2]/70"}`}>
                           {isMask ? "Face mask is properly worn." : "No face mask found in the image."}
                         </p>
                       </div>
@@ -508,7 +507,7 @@ function UploadModal({ onClose, token, onSuccess }) {
                 <button
                   onClick={resetUpload}
                   disabled={loading}
-                  className="absolute top-3 right-3 bg-red-500/90 hover:bg-red-600 text-white rounded-full p-2 transition z-20"
+                  className="absolute top-3 right-3 bg-[#FFB7B2]/90 hover:bg-[#FFB7B2] text-[#1e1e2e] text-white rounded-full p-2 transition z-20"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -525,17 +524,17 @@ function UploadModal({ onClose, token, onSuccess }) {
           ) : (
             /* Drop zone */
             <label
-              className="flex flex-col items-center justify-center border-2 border-dashed border-cyan-500/40 hover:border-cyan-400 rounded-xl cursor-pointer bg-black/20 hover:bg-black/30 transition group"
+              className="flex flex-col items-center justify-center border-2 border-dashed border-[#97C9DB]/30 hover:border-[#97C9DB] rounded-xl cursor-pointer bg-black/20 hover:bg-black/30 transition group"
               style={{ minHeight: "320px" }}
             >
               <svg
-                className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 text-cyan-400 mb-4 group-hover:scale-105 transition-transform duration-200"
+                className="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 text-[#97C9DB] mb-4 group-hover:scale-105 transition-transform duration-200"
                 fill="none" stroke="currentColor" viewBox="0 0 24 24"
               >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.3}
                   d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
-              <p className="text-base sm:text-lg text-cyan-400 font-semibold mb-2">Click to upload image</p>
+              <p className="text-base sm:text-lg text-[#97C9DB] font-semibold mb-2">Click to upload image</p>
               <p className="text-sm text-gray-500">JPG, PNG or WebP · Max 10MB</p>
               <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" disabled={loading} />
             </label>
@@ -543,11 +542,11 @@ function UploadModal({ onClose, token, onSuccess }) {
 
           {/* Error */}
           {error && (
-            <div className="p-3 sm:p-4 rounded-lg border border-red-500/40 bg-red-500/10 flex items-center gap-2">
-              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="p-3 sm:p-4 rounded-lg border border-[#FFB7B2]/30 bg-[#FFB7B2]/10 flex items-center gap-2">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-[#FFB7B2] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
-              <p className="text-sm text-red-400">{error}</p>
+              <p className="text-sm text-[#FFB7B2]">{error}</p>
             </div>
           )}
 
@@ -558,7 +557,7 @@ function UploadModal({ onClose, token, onSuccess }) {
             className={`w-full py-3 sm:py-4 rounded-xl font-semibold transition flex items-center justify-center gap-2 text-sm sm:text-base lg:text-lg
               ${loading || !file
                 ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-                : "bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white shadow-lg shadow-cyan-500/20"}`}
+                : "bg-[#97C9DB] text-[#1e1e2e] hover:bg-[#85bdd2] transition font-semibold shadow-lg"}`}
           >
             {loading ? (
               <>
@@ -598,7 +597,8 @@ function WebcamModal({ onClose, token, onSuccess }) {
   const [error,      setError]      = useState("");
   const [isLoading,  setIsLoading]  = useState(false);
 
-  const isMask = result === "Mask";
+  const isMask  = result === "Mask";
+  const noFace  = result === "No Face" || result === "";
 
   // ── Start Camera ──────────────────────────────────────────
   const startCamera = async () => {
@@ -656,7 +656,7 @@ function WebcamModal({ onClose, token, onSuccess }) {
 
     try {
       const res = await axios.post(
-        "http://127.0.0.1:8000/ai/detect-webcam",
+        "/ai/detect-webcam",
         { image: capture.toDataURL("image/jpeg") },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -667,7 +667,10 @@ function WebcamModal({ onClose, token, onSuccess }) {
         setConfidence(conf);
         onSuccess();
       } else if (prediction === "No Face") {
-        detectionRef.current = { ...detectionRef.current, box: null };
+        // Face lost — clear box AND update result to "No Face"
+        detectionRef.current = { result: "No Face", confidence: 0, box: null };
+        setResult("No Face");
+        setConfidence(0);
       }
     } catch (e) {
       console.error("Frame detection error:", e);
@@ -770,23 +773,23 @@ function WebcamModal({ onClose, token, onSuccess }) {
   useEffect(() => { return () => stopCamera(); }, []);
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-[3px] z-50 flex items-center justify-center p-3 sm:p-4 lg:p-6 animate-fadeIn">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-3 sm:p-4 lg:p-6 animate-fadeIn">
       <div
-        className="bg-[#0b1120]/95 backdrop-blur-xl border border-purple-500/40 rounded-2xl w-full max-w-4xl shadow-[0_0_50px_rgba(168,85,247,0.55)] flex flex-col"
+        className="bg-[#282828] border border-[#FFC0C1]/40 rounded-2xl w-full max-w-4xl shadow-2xl flex flex-col"
         style={{ maxHeight: "92vh" }}
       >
 
         {/* ── Header ── */}
-        <div className="flex-shrink-0 bg-[#0b1120] border-b border-purple-500/30 px-5 py-4 sm:px-8 sm:py-5 flex items-center justify-between rounded-t-2xl">
+        <div className="flex-shrink-0 bg-[#282828] border-b border-[#3a3a4a] px-5 py-4 sm:px-8 sm:py-5 flex items-center justify-between rounded-t-2xl">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center flex-shrink-0">
-              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#FFC0C1]/20 border border-[#FFC0C1]/40 flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-[#FFC0C1]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
                   d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
               </svg>
             </div>
             <div>
-              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-purple-400">Live Webcam</h2>
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#FFC0C1]">Live Webcam</h2>
               <p className="text-xs text-gray-500 mt-0.5">Real-time mask detection</p>
             </div>
           </div>
@@ -807,11 +810,9 @@ function WebcamModal({ onClose, token, onSuccess }) {
               aspectRatio: "16/9",
               border: "2px solid",
               borderColor: result && result !== "No Face"
-                ? (isMask ? "rgba(34,197,94,0.65)" : "rgba(239,68,68,0.65)")
-                : "rgba(168,85,247,0.45)",
-              boxShadow: result && result !== "No Face"
-                ? (isMask ? "0 0 28px rgba(34,197,94,0.25)" : "0 0 28px rgba(239,68,68,0.25)")
-                : "0 0 20px rgba(168,85,247,0.15)",
+                ? (isMask ? "rgba(181,234,215,0.65)" : "rgba(255,183,178,0.65)")
+                : "rgba(151,201,219,0.45)",
+              boxShadow: "none",
               transition: "border-color 0.3s, box-shadow 0.3s"
             }}
           >
@@ -834,63 +835,74 @@ function WebcamModal({ onClose, token, onSuccess }) {
             {/* Starting spinner */}
             {isLoading && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 gap-3">
-                <div className="animate-spin rounded-full h-12 w-12 sm:h-16 sm:w-16 border-b-2 border-purple-400" />
-                <p className="text-purple-400 text-sm sm:text-base">Starting camera...</p>
+                <div className="animate-spin rounded-full h-12 w-12 sm:h-16 sm:w-16 border-b-2 border-[#FFC0C1]" />
+                <p className="text-[#FFC0C1] text-sm sm:text-base">Starting camera...</p>
               </div>
             )}
 
             {/* LIVE badge */}
             {running && (
-              <div className="absolute top-3 right-3 sm:top-4 sm:right-4 flex items-center gap-2 bg-black/60 backdrop-blur-sm px-3 py-1.5 sm:px-4 sm:py-2 rounded-full border border-red-500/50 z-10">
+              <div className="absolute top-3 right-3 sm:top-4 sm:right-4 flex items-center gap-2 bg-black/60 backdrop-blur-sm px-3 py-1.5 sm:px-4 sm:py-2 rounded-full border border-[#FFB7B2]/40 z-10">
                 <span className="relative flex h-2.5 w-2.5 sm:h-3 sm:w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 sm:h-3 sm:w-3 bg-red-500" />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#FFB7B2] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 sm:h-3 sm:w-3 bg-[#FFB7B2]" />
                 </span>
                 <span className="text-xs sm:text-sm font-semibold text-white tracking-widest">LIVE</span>
               </div>
             )}
 
             {/* ── Result overlay at bottom of video — same as admin ── */}
-            {result && result !== "No Face" && running && (
+            {running && result && (
               <div className="absolute inset-x-0 bottom-0 animate-fadeIn pointer-events-none">
                 <div
                   className="absolute inset-0"
                   style={{
-                    background: isMask
-                      ? "linear-gradient(to top, rgba(0,30,15,0.90) 0%, transparent 100%)"
-                      : "linear-gradient(to top, rgba(35,0,0,0.90) 0%, transparent 100%)"
+                    background: noFace
+                      ? "linear-gradient(to top, rgba(20,20,30,0.90) 0%, transparent 100%)"
+                      : isMask
+                        ? "linear-gradient(to top, rgba(0,30,15,0.90) 0%, transparent 100%)"
+                        : "linear-gradient(to top, rgba(35,0,0,0.90) 0%, transparent 100%)"
                   }}
                 />
                 <div className="relative z-10 flex items-center gap-3 sm:gap-4 px-4 py-3 sm:px-6 sm:py-4">
                   <div className={`w-9 h-9 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 flex-shrink-0
-                    ${isMask ? "bg-green-500/25 border-green-500/50" : "bg-red-500/25 border-red-500/50"}`}>
-                    {isMask ? (
-                      <svg className="w-4 h-4 sm:w-6 sm:h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    ${noFace ? "bg-gray-500/25 border-gray-400/40" : isMask ? "bg-[#B5EAD7]/25 border-[#B5EAD7]/40" : "bg-[#FFB7B2]/25 border-[#FFB7B2]/40"}`}>
+                    {noFace ? (
+                      <svg className="w-4 h-4 sm:w-6 sm:h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2}
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2}
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    ) : isMask ? (
+                      <svg className="w-4 h-4 sm:w-6 sm:h-6 text-[#B5EAD7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2}
                           d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                       </svg>
                     ) : (
-                      <svg className="w-4 h-4 sm:w-6 sm:h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4 sm:w-6 sm:h-6 text-[#FFB7B2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2}
                           d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                       </svg>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm sm:text-xl font-bold tracking-widest leading-tight ${isMask ? "text-green-400" : "text-red-400"}`}>
-                      {isMask ? "MASK DETECTED" : "NO MASK DETECTED"}
+                    <p className={`text-sm sm:text-xl font-bold tracking-widest leading-tight ${noFace ? "text-gray-400" : isMask ? "text-[#B5EAD7]" : "text-[#FFB7B2]"}`}>
+                      {noFace ? "NO FACE DETECTED" : isMask ? "MASK DETECTED" : "NO MASK DETECTED"}
                     </p>
-                    <p className={`text-xs sm:text-sm mt-0.5 ${isMask ? "text-green-300/70" : "text-red-300/70"}`}>
-                      {isMask ? "Face mask is properly worn." : "No face mask found."}
+                    <p className={`text-xs sm:text-sm mt-0.5 ${noFace ? "text-gray-500" : isMask ? "text-[#B5EAD7]/70" : "text-[#FFB7B2]/70"}`}>
+                      {noFace ? "No face found in the frame." : isMask ? "Face mask is properly worn." : "No face mask found."}
                     </p>
                   </div>
-                  <div className="flex-shrink-0 flex items-center gap-1.5 bg-black/50 border border-cyan-500/30 px-3 py-1.5 rounded-full">
-                    <svg className="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                    <span className="text-xs sm:text-sm font-bold text-cyan-300 font-mono">{confidence}%</span>
-                  </div>
+                  {!noFace && (
+                    <div className="flex-shrink-0 flex items-center gap-1.5 bg-black/50 border border-[#3a3a4a] px-3 py-1.5 rounded-full">
+                      <svg className="w-3.5 h-3.5 text-[#97C9DB]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                      <span className="text-xs sm:text-sm font-bold text-[#97C9DB] font-mono">{confidence}%</span>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -901,11 +913,11 @@ function WebcamModal({ onClose, token, onSuccess }) {
 
           {/* Error */}
           {error && (
-            <div className="p-3 sm:p-4 rounded-lg border border-red-500/40 bg-red-500/10 flex items-center gap-2">
-              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="p-3 sm:p-4 rounded-lg border border-[#FFB7B2]/30 bg-[#FFB7B2]/10 flex items-center gap-2">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-[#FFB7B2] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <p className="text-sm sm:text-base text-red-400">{error}</p>
+              <p className="text-sm sm:text-base text-[#FFB7B2]">{error}</p>
             </div>
           )}
 
@@ -917,7 +929,7 @@ function WebcamModal({ onClose, token, onSuccess }) {
               className={`w-full py-3 sm:py-4 rounded-xl font-semibold transition flex items-center justify-center gap-2 text-sm sm:text-base lg:text-lg
                 ${isLoading
                   ? "bg-gray-700 cursor-not-allowed text-gray-400"
-                  : "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white shadow-lg shadow-purple-500/20"}`}
+                  : "bg-[#97C9DB] text-[#1e1e2e] hover:bg-[#85bdd2] transition font-semibold shadow-lg"}`}
             >
               {isLoading ? (
                 <>
@@ -942,7 +954,7 @@ function WebcamModal({ onClose, token, onSuccess }) {
           ) : (
             <button
               onClick={stopCamera}
-              className="w-full py-3 sm:py-4 rounded-xl bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-400 hover:to-pink-500 transition font-semibold shadow-lg shadow-red-500/20 flex items-center justify-center gap-2 text-sm sm:text-base lg:text-lg text-white"
+              className="w-full py-3 sm:py-4 rounded-xl bg-[#FFB7B2] text-[#1e1e2e] hover:bg-[#ffc6c2] transition font-semibold shadow-lg flex items-center justify-center gap-2 text-sm sm:text-base lg:text-lg"
             >
               <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd"
@@ -961,10 +973,10 @@ function WebcamModal({ onClose, token, onSuccess }) {
 // ================= USER ANALYTICS MODAL =================
 const userAnalyticsScrollStyle = `
   .user-analytics-scroll::-webkit-scrollbar { width: 5px; }
-  .user-analytics-scroll::-webkit-scrollbar-track { background: #020617; }
+  .user-analytics-scroll::-webkit-scrollbar-track { background: #1e1e2e; }
   .user-analytics-scroll::-webkit-scrollbar-thumb { background: rgba(6,182,212,0.4); border-radius: 9999px; }
   .user-analytics-scroll::-webkit-scrollbar-thumb:hover { background: rgba(6,182,212,0.7); }
-  .user-analytics-scroll { scrollbar-width: thin; scrollbar-color: rgba(6,182,212,0.4) #020617; }
+  .user-analytics-scroll { scrollbar-width: thin; scrollbar-color: rgba(151,201,219,0.4) #1e1e2e; }
 `;
 
 function UserAnalyticsModal({ onClose, token }) {
@@ -973,7 +985,7 @@ function UserAnalyticsModal({ onClose, token }) {
 
   useEffect(() => {
     const fetchAnalytics = () => {
-      axios.get("http://127.0.0.1:8000/user/user-analytics", {
+      axios.get("/user/user-analytics", {
         headers: { Authorization: `Bearer ${token}` }
       })
       .then(res => { setData(res.data); setError(""); })
@@ -988,10 +1000,10 @@ function UserAnalyticsModal({ onClose, token }) {
   // ── Loading ───────────────────────────────────────────────
   if (!data && !error) {
     return (
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-[3px] z-50 flex items-center justify-center p-3 sm:p-4 lg:p-6">
-        <div className="bg-[#0b1120]/95 backdrop-blur-xl border border-cyan-500/40 rounded-2xl p-10 flex flex-col items-center gap-4 shadow-[0_0_50px_rgba(6,182,212,0.45)]">
-          <div className="animate-spin rounded-full h-14 w-14 border-b-2 border-cyan-400" />
-          <p className="text-cyan-400 text-base font-medium">Loading Analytics...</p>
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-3 sm:p-4 lg:p-6">
+        <div className="bg-[#282828] border border-[#97C9DB]/30 rounded-2xl p-10 flex flex-col items-center gap-4 shadow-2xl">
+          <div className="animate-spin rounded-full h-14 w-14 border-b-2 border-[#97C9DB]" />
+          <p className="text-[#97C9DB] text-base font-medium">Loading Analytics...</p>
         </div>
       </div>
     );
@@ -1007,20 +1019,20 @@ function UserAnalyticsModal({ onClose, token }) {
   return (
     <>
       <style>{userAnalyticsScrollStyle}</style>
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-[3px] z-50 flex items-center justify-center p-3 sm:p-4 lg:p-6 animate-fadeIn">
-        <div className="bg-[#0b1120]/95 backdrop-blur-xl border border-cyan-500/40 rounded-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[92vh] overflow-y-auto user-analytics-scroll shadow-[0_0_50px_rgba(6,182,212,0.45)]">
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-3 sm:p-4 lg:p-6 animate-fadeIn">
+        <div className="bg-[#282828] border border-[#97C9DB]/30 rounded-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[92vh] overflow-y-auto user-analytics-scroll shadow-2xl">
 
           {/* ── Header ── */}
-          <div className="sticky top-0 bg-[#0b1120] border-b border-cyan-500/30 px-5 py-4 sm:px-8 sm:py-5 flex items-center justify-between z-10">
+          <div className="sticky top-0 bg-[#282828] border-b border-[#3a3a4a] px-5 py-4 sm:px-8 sm:py-5 flex items-center justify-between z-10">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#97C9DB]/15 border border-[#97C9DB]/30 flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-[#97C9DB]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
                     d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
               </div>
               <div>
-                <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-cyan-400">My Analytics</h2>
+                <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#97C9DB]">My Analytics</h2>
                 <p className="text-xs text-gray-500 mt-0.5 font-mono">Your personal detection stats</p>
               </div>
             </div>
@@ -1036,11 +1048,11 @@ function UserAnalyticsModal({ onClose, token }) {
 
             {/* Error */}
             {error && (
-              <div className="p-4 rounded-xl border border-red-500/40 bg-red-500/10 flex items-center gap-3">
-                <svg className="w-5 h-5 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="p-4 rounded-xl border border-[#FFB7B2]/30 bg-[#FFB7B2]/10 flex items-center gap-3">
+                <svg className="w-5 h-5 text-[#FFB7B2] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <p className="text-red-400 text-sm sm:text-base">{error}</p>
+                <p className="text-[#FFB7B2] text-sm sm:text-base">{error}</p>
               </div>
             )}
 
@@ -1049,11 +1061,11 @@ function UserAnalyticsModal({ onClose, token }) {
                 {/* ── Section 1: Detection Overview ── */}
                 <div>
                   <div className="flex items-center gap-2 mb-4">
-                    <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-[#97C9DB]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                         d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                     </svg>
-                    <h3 className="text-sm sm:text-base font-semibold text-cyan-300 uppercase tracking-widest">Detection Overview</h3>
+                    <h3 className="text-sm sm:text-base font-semibold text-[#97C9DB] uppercase tracking-widest">Detection Overview</h3>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                     <UserStatCard
@@ -1094,26 +1106,26 @@ function UserAnalyticsModal({ onClose, token }) {
 
                 {/* ── Detection Rate Bar ── */}
                 {total > 0 && (
-                  <div className="bg-[#020617] border border-cyan-500/30 rounded-xl p-5 sm:p-6">
+                  <div className="bg-[#1e1e2e] border border-[#3a3a4a] rounded-xl p-5 sm:p-6">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
-                        <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4 text-[#97C9DB]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                             d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
                         </svg>
-                        <span className="text-xs sm:text-sm font-semibold text-cyan-300 uppercase tracking-widest">Detection Rate</span>
+                        <span className="text-xs sm:text-sm font-semibold text-[#97C9DB] uppercase tracking-widest">Detection Rate</span>
                       </div>
                       <span className="text-xs text-gray-400 font-mono">{total} total</span>
                     </div>
                     <div className="flex rounded-full overflow-hidden h-4 sm:h-5 gap-0.5">
                       <div
-                        className="bg-green-500 flex items-center justify-center transition-all duration-700"
+                        className="bg-[#B5EAD7] flex items-center justify-center transition-all duration-700"
                         style={{ width: `${maskRate}%` }}
                       >
                         {maskRate > 12 && <span className="text-xs font-bold text-white">{maskRate}%</span>}
                       </div>
                       <div
-                        className="bg-red-500 flex items-center justify-center transition-all duration-700"
+                        className="bg-[#FFB7B2] flex items-center justify-center transition-all duration-700"
                         style={{ width: `${noMaskRate}%` }}
                       >
                         {noMaskRate > 12 && <span className="text-xs font-bold text-white">{noMaskRate}%</span>}
@@ -1121,11 +1133,11 @@ function UserAnalyticsModal({ onClose, token }) {
                     </div>
                     <div className="flex items-center gap-4 mt-3">
                       <div className="flex items-center gap-1.5">
-                        <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#B5EAD7]" />
                         <span className="text-xs text-gray-400">Mask ({maskRate}%)</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#FFB7B2]" />
                         <span className="text-xs text-gray-400">No Mask ({noMaskRate}%)</span>
                       </div>
                     </div>
@@ -1135,11 +1147,11 @@ function UserAnalyticsModal({ onClose, token }) {
                 {/* ── Section 2: Source Breakdown ── */}
                 <div>
                   <div className="flex items-center gap-2 mb-4">
-                    <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-[#97C9DB]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                         d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                     </svg>
-                    <h3 className="text-sm sm:text-base font-semibold text-cyan-300 uppercase tracking-widest">Source Breakdown</h3>
+                    <h3 className="text-sm sm:text-base font-semibold text-[#97C9DB] uppercase tracking-widest">Source Breakdown</h3>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                     <UserStatCard
@@ -1190,18 +1202,18 @@ function UserAnalyticsModal({ onClose, token }) {
 // ── User StatCard ─────────────────────────────────────────────────────
 function UserStatCard({ title, value, color, icon }) {
   const styles = {
-    cyan:   { border: "border-cyan-500/50",   text: "text-cyan-300",   iconBg: "bg-cyan-500/15   border-cyan-500/30"   },
-    green:  { border: "border-green-500/50",  text: "text-green-400",  iconBg: "bg-green-500/15  border-green-500/30"  },
-    red:    { border: "border-red-500/50",    text: "text-red-400",    iconBg: "bg-red-500/15    border-red-500/30"    },
-    purple: { border: "border-purple-500/50", text: "text-purple-400", iconBg: "bg-purple-500/15 border-purple-500/30" },
-    yellow: { border: "border-yellow-500/50", text: "text-yellow-400", iconBg: "bg-yellow-500/15 border-yellow-500/30" },
-    pink:   { border: "border-pink-500/50",   text: "text-pink-400",   iconBg: "bg-pink-500/15   border-pink-500/30"   },
+    cyan:   { border: "border-[#97C9DB]/50",   text: "text-[#97C9DB]",   iconBg: "bg-[#97C9DB]/10   border-[#3a3a4a]"   },
+    green:  { border: "border-[#B5EAD7]/40",  text: "text-[#B5EAD7]",  iconBg: "bg-[#B5EAD7]/15  border-[#B5EAD7]/30"  },
+    red:    { border: "border-[#FFB7B2]/40",    text: "text-[#FFB7B2]",    iconBg: "bg-[#FFB7B2]/15    border-[#FFB7B2]/30"    },
+    purple: { border: "border-[#FFC0C1]/50", text: "text-[#FFC0C1]", iconBg: "bg-[#FFC0C1]/15 border-[#3a3a4a]" },
+    yellow: { border: "border-[#FFDAC1]/40", text: "text-[#FFDAC1]", iconBg: "bg-[#FFDAC1]/15 border-[#FFDAC1]/30" },
+    pink:   { border: "border-[#FFC0C1]/50",   text: "text-[#FFC0C1]",   iconBg: "bg-[#FFC0C1]/15   border-[#FFC0C1]/30"   },
   };
 
   const s = styles[color] || styles.cyan;
 
   return (
-    <div className={`bg-[#020617] border ${s.border} rounded-xl p-5 sm:p-6 flex items-center gap-4 hover:scale-[1.02] transition-transform duration-200`}>
+    <div className={`bg-[#1e1e2e] border ${s.border} rounded-xl p-5 sm:p-6 flex items-center gap-4 hover:scale-[1.02] transition-transform duration-200`}>
       <div className={`w-11 h-11 sm:w-13 sm:h-13 rounded-xl border flex items-center justify-center flex-shrink-0 ${s.iconBg}`}>
         <div className={`w-5 h-5 sm:w-6 sm:h-6 ${s.text}`}>
           {icon}
@@ -1229,7 +1241,7 @@ function UserLogsModal({ onClose, token }) {
   // ── Fetch user's own logs ─────────────────────────────────
   useEffect(() => {
     setFetchLoading(true);
-    axios.get("http://127.0.0.1:8000/user/user-logs", {
+    axios.get("/user/user-logs", {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => {
@@ -1279,13 +1291,13 @@ function UserLogsModal({ onClose, token }) {
   // Source icon + color helper
   const getSourceStyle = (source) => {
     const s = source?.toLowerCase();
-    if (s === 'webcam') return { color: 'text-yellow-400', icon: (
+    if (s === 'webcam') return { color: 'text-[#FFDAC1]', icon: (
       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
           d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
       </svg>
     )};
-    if (s === 'upload') return { color: 'text-blue-400', icon: (
+    if (s === 'upload') return { color: 'text-[#97C9DB]', icon: (
       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
           d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
@@ -1299,36 +1311,36 @@ function UserLogsModal({ onClose, token }) {
     )};
   };
 
-  const inputClass  = "w-full px-3 py-2 bg-[#020617] border border-cyan-500/30 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-500/30 transition-colors placeholder:text-gray-600";
-  const selectClass = "w-full pl-3 pr-8 py-2 bg-[#020617] border border-cyan-500/30 rounded-lg text-sm text-white focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-500/30 transition-colors appearance-none cursor-pointer";
+  const inputClass  = "w-full px-3 py-2 bg-[#1e1e2e] border border-[#3a3a4a] rounded-lg text-sm text-white focus:outline-none focus:border-[#97C9DB] focus:ring-1 focus:ring-[#97C9DB]/20 transition-colors placeholder:text-gray-600";
+  const selectClass = "w-full pl-3 pr-8 py-2 bg-[#1e1e2e] border border-[#3a3a4a] rounded-lg text-sm text-white focus:outline-none focus:border-[#97C9DB] focus:ring-1 focus:ring-[#97C9DB]/20 transition-colors appearance-none cursor-pointer";
 
   return (
     <>
       <style>{`
         .user-logs-scroll::-webkit-scrollbar { width: 5px; }
-        .user-logs-scroll::-webkit-scrollbar-track { background: #020617; }
-        .user-logs-scroll::-webkit-scrollbar-thumb { background: rgba(6,182,212,0.4); border-radius: 9999px; }
-        .user-logs-scroll::-webkit-scrollbar-thumb:hover { background: rgba(6,182,212,0.7); }
-        .user-logs-scroll { scrollbar-width: thin; scrollbar-color: rgba(6,182,212,0.4) #020617; }
+        .user-logs-scroll::-webkit-scrollbar-track { background: #1e1e2e; }
+        .user-logs-scroll::-webkit-scrollbar-thumb { background: rgba(151,201,219,0.4); border-radius: 9999px; }
+        .user-logs-scroll::-webkit-scrollbar-thumb:hover { background: rgba(151,201,219,0.7); }
+        .user-logs-scroll { scrollbar-width: thin; scrollbar-color: rgba(151,201,219,0.4) #1e1e2e; }
       `}</style>
 
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-[3px] z-50 flex items-center justify-center p-2 sm:p-3 lg:p-6 animate-fadeIn">
+      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 sm:p-3 lg:p-6 animate-fadeIn">
         <div
-          className="bg-[#0b1120]/95 backdrop-blur-xl border border-cyan-500/40 rounded-2xl w-full max-w-[98vw] sm:max-w-[95vw] lg:max-w-5xl shadow-[0_0_50px_rgba(6,182,212,0.45)] flex flex-col"
+          className="bg-[#282828] border border-[#97C9DB]/30 rounded-2xl w-full max-w-[98vw] sm:max-w-[95vw] lg:max-w-5xl shadow-2xl flex flex-col"
           style={{ maxHeight: "95vh" }}
         >
 
           {/* ── Header ── */}
-          <div className="flex-shrink-0 bg-[#0b1120] border-b border-cyan-500/30 px-5 py-4 sm:px-8 sm:py-5 flex items-center justify-between rounded-t-2xl">
+          <div className="flex-shrink-0 bg-[#282828] border-b border-[#3a3a4a] px-5 py-4 sm:px-8 sm:py-5 flex items-center justify-between rounded-t-2xl">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#97C9DB]/15 border border-[#97C9DB]/30 flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-[#97C9DB]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
               <div>
-                <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-cyan-400">My Detection Logs</h2>
+                <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#97C9DB]">My Detection Logs</h2>
                 <p className="text-xs text-gray-500 mt-0.5 font-mono">
                   {fetchLoading ? "Loading..." : `${allLogs.length} total records`}
                 </p>
@@ -1342,7 +1354,7 @@ function UserLogsModal({ onClose, token }) {
           </div>
 
           {/* ── Filters ── */}
-          <div className="flex-shrink-0 bg-[#0b1120]/80 border-b border-cyan-500/20 px-5 py-4 sm:px-8">
+          <div className="flex-shrink-0 bg-[#282828] border-b border-[#3a3a4a] px-5 py-4 sm:px-8">
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
 
               {/* Search by timestamp */}
@@ -1401,11 +1413,11 @@ function UserLogsModal({ onClose, token }) {
             {/* Results + reset */}
             <div className="flex items-center justify-between mt-3">
               <p className="text-xs text-gray-500 font-mono">
-                Showing <span className="text-cyan-400 font-semibold">{currentLogs.length}</span> of{" "}
-                <span className="text-cyan-400 font-semibold">{filteredLogs.length}</span> logs
+                Showing <span className="text-[#97C9DB] font-semibold">{currentLogs.length}</span> of{" "}
+                <span className="text-[#97C9DB] font-semibold">{filteredLogs.length}</span> logs
               </p>
               {hasActiveFilter && (
-                <button onClick={resetFilters} className="flex items-center gap-1.5 text-xs text-cyan-400 hover:text-cyan-300 transition font-medium">
+                <button onClick={resetFilters} className="flex items-center gap-1.5 text-xs text-[#97C9DB] hover:text-[#97C9DB] transition font-medium">
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                       d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
@@ -1422,18 +1434,18 @@ function UserLogsModal({ onClose, token }) {
             {/* Loading */}
             {fetchLoading && (
               <div className="flex flex-col items-center justify-center py-20 gap-4">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-cyan-400" />
-                <p className="text-cyan-400 text-sm">Fetching your logs...</p>
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#97C9DB]" />
+                <p className="text-[#97C9DB] text-sm">Fetching your logs...</p>
               </div>
             )}
 
             {/* Error */}
             {fetchError && !fetchLoading && (
-              <div className="m-5 p-4 rounded-xl border border-red-500/40 bg-red-500/10 flex items-center gap-3">
-                <svg className="w-5 h-5 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="m-5 p-4 rounded-xl border border-[#FFB7B2]/30 bg-[#FFB7B2]/10 flex items-center gap-3">
+                <svg className="w-5 h-5 text-[#FFB7B2] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                <p className="text-red-400 text-sm">{fetchError}</p>
+                <p className="text-[#FFB7B2] text-sm">{fetchError}</p>
               </div>
             )}
 
@@ -1442,7 +1454,7 @@ function UserLogsModal({ onClose, token }) {
                 {/* ── Desktop table ── */}
                 <div className="hidden lg:block">
                   <table className="w-full text-sm">
-                    <thead className="bg-[#020617] border-b border-cyan-500/30 sticky top-0 z-10">
+                    <thead className="bg-[#1e1e2e] border-b border-[#3a3a4a] sticky top-0 z-10">
                       <tr>
                         {[
                           { label: 'Status',     align: 'text-left'   },
@@ -1450,13 +1462,13 @@ function UserLogsModal({ onClose, token }) {
                           { label: 'Source',     align: 'text-center' },
                           { label: 'Time',       align: 'text-right'  },
                         ].map(h => (
-                          <th key={h.label} className={`px-5 py-3.5 ${h.align} text-xs font-semibold text-cyan-300 uppercase tracking-widest`}>
+                          <th key={h.label} className={`px-5 py-3.5 ${h.align} text-xs font-semibold text-[#97C9DB] uppercase tracking-widest`}>
                             {h.label}
                           </th>
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-cyan-900/20">
+                    <tbody className="divide-y divide-[#97C9DB]/20">
                       {currentLogs.length === 0 ? (
                         <tr>
                           <td colSpan="4" className="text-center py-16 text-gray-500">
@@ -1470,12 +1482,12 @@ function UserLogsModal({ onClose, token }) {
                       ) : currentLogs.map((log, i) => {
                         const src = getSourceStyle(log.source);
                         return (
-                          <tr key={i} className="hover:bg-cyan-900/10 transition-colors">
+                          <tr key={i} className="hover:bg-[#97C9DB]/5 transition-colors">
                             <td className="px-5 py-3.5">
                               <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold
                                 ${log.status === "Mask"
-                                  ? "bg-green-900/30 text-green-400 border border-green-500/40"
-                                  : "bg-red-900/30 text-red-400 border border-red-500/40"}`}>
+                                  ? "bg-green-900/30 text-[#B5EAD7] border border-[#B5EAD7]/30"
+                                  : "bg-red-900/30 text-[#FFB7B2] border border-[#FFB7B2]/30"}`}>
                                 {log.status === "Mask" ? (
                                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/>
@@ -1488,7 +1500,7 @@ function UserLogsModal({ onClose, token }) {
                                 {log.status}
                               </span>
                             </td>
-                            <td className="px-5 py-3.5 text-center font-mono text-cyan-300 text-sm">
+                            <td className="px-5 py-3.5 text-center font-mono text-[#97C9DB] text-sm">
                               {typeof log.confidence === 'number' ? log.confidence.toFixed(3) : log.confidence}
                             </td>
                             <td className="px-5 py-3.5 text-center">
@@ -1508,18 +1520,18 @@ function UserLogsModal({ onClose, token }) {
                 {/* ── Mobile cards ── */}
                 <div className="lg:hidden p-4 sm:p-5 space-y-3">
                   {currentLogs.length === 0 ? (
-                    <div className="bg-[#020617] border border-cyan-500/30 rounded-xl p-8 text-center text-gray-500 text-sm">
+                    <div className="bg-[#1e1e2e] border border-[#3a3a4a] rounded-xl p-8 text-center text-gray-500 text-sm">
                       {allLogs.length === 0 ? "No logs available" : "No logs match your filters"}
                     </div>
                   ) : currentLogs.map((log, i) => {
                     const src = getSourceStyle(log.source);
                     return (
-                      <div key={i} className="bg-[#020617] border border-cyan-500/20 rounded-xl p-4 hover:border-cyan-500/40 transition-colors">
+                      <div key={i} className="bg-[#1e1e2e] border border-[#3a3a4a] rounded-xl p-4 hover:border-[#97C9DB]/30 transition-colors">
                         <div className="flex items-start justify-between gap-2 mb-3">
                           <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold
                             ${log.status === "Mask"
-                              ? "bg-green-900/30 text-green-400 border border-green-500/40"
-                              : "bg-red-900/30 text-red-400 border border-red-500/40"}`}>
+                              ? "bg-green-900/30 text-[#B5EAD7] border border-[#B5EAD7]/30"
+                              : "bg-red-900/30 text-[#FFB7B2] border border-[#FFB7B2]/30"}`}>
                             {log.status === "Mask" ? (
                               <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/>
@@ -1536,10 +1548,10 @@ function UserLogsModal({ onClose, token }) {
                             {log.source}
                           </span>
                         </div>
-                        <div className="grid grid-cols-2 gap-3 pt-3 border-t border-cyan-900/30">
+                        <div className="grid grid-cols-2 gap-3 pt-3 border-t border-[#3a3a4a]">
                           <div>
                             <p className="text-xs text-gray-500 mb-0.5">Confidence</p>
-                            <p className="text-xs text-cyan-300 font-mono">
+                            <p className="text-xs text-[#97C9DB] font-mono">
                               {typeof log.confidence === 'number' ? log.confidence.toFixed(3) : log.confidence}
                             </p>
                           </div>
@@ -1558,7 +1570,7 @@ function UserLogsModal({ onClose, token }) {
 
           {/* ── Pagination footer ── */}
           {!fetchLoading && filteredLogs.length > 0 && (
-            <div className="flex-shrink-0 bg-[#0b1120]/90 border-t border-cyan-500/20 px-5 py-3 sm:px-8 rounded-b-2xl">
+            <div className="flex-shrink-0 bg-[#282828] border-t border-[#3a3a4a] px-5 py-3 sm:px-8 rounded-b-2xl">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
 
                 {/* Left: per page + count + reset */}
@@ -1567,7 +1579,7 @@ function UserLogsModal({ onClose, token }) {
                     <select
                       value={logsPerPage}
                       onChange={e => setLogsPerPage(Number(e.target.value))}
-                      className="pl-3 pr-7 py-1.5 bg-[#020617] border border-cyan-500/30 rounded-lg text-xs text-white focus:outline-none focus:border-cyan-400 appearance-none cursor-pointer"
+                      className="pl-3 pr-7 py-1.5 bg-[#1e1e2e] border border-[#3a3a4a] rounded-lg text-xs text-white focus:outline-none focus:border-[#97C9DB] appearance-none cursor-pointer"
                     >
                       {[10, 25, 50, 100].map(n => <option key={n} value={n}>{n} / page</option>)}
                     </select>
@@ -1612,7 +1624,7 @@ function UserLogsModal({ onClose, token }) {
                           onClick={() => setCurrentPage(p)}
                           className={`w-7 h-7 rounded-lg text-xs font-medium transition ${
                             currentPage === p
-                              ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-500/30'
+                              ? 'bg-[#97C9DB] text-white shadow-lg'
                               : 'text-gray-400 hover:bg-white/10 hover:text-white'
                           }`}
                         >

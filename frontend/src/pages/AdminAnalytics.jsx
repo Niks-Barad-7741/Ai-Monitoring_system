@@ -10,7 +10,7 @@ function AdminAnalytics(){
   const token = sessionStorage.getItem("token");
 
   const fetchAnalytics = ()=>{
-    axios.get("http://127.0.0.1:8000/admin/admin-analytics",{
+    axios.get("/admin/admin-analytics",{
       headers:{ Authorization:`Bearer ${token}` }
     })
     .then(res=>{
@@ -31,24 +31,24 @@ function AdminAnalytics(){
   },[]);
 
   if(!data && !error) return (
-    <div className="min-h-screen flex items-center justify-center bg-[#020617] text-purple-400">
+    <div className="min-h-screen flex items-center justify-center bg-[#1e1e2e] text-[#FFC0C1]">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 sm:h-16 sm:w-16 border-b-2 border-purple-400 mx-auto mb-4"></div>
+        <div className="animate-spin rounded-full h-12 w-12 sm:h-16 sm:w-16 border-b-2 border-[#FFC0C1] mx-auto mb-4"></div>
         <p className="text-base sm:text-xl">Loading Analytics...</p>
       </div>
     </div>
   );
 
   return(
-    <div className="min-h-screen bg-[#020617] text-white">
+    <div className="min-h-screen bg-[#1e1e2e] text-white">
       {/* Container with responsive padding */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10">
 
         {/* HEADER */}
         <div className="text-center mb-8 sm:mb-10 lg:mb-12">
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl 
-          font-bold text-purple-400 tracking-wide sm:tracking-widest 
-          drop-shadow-[0_0_15px_purple] mb-3 sm:mb-4">
+          font-bold text-[#FFC0C1] tracking-wide sm:tracking-widest 
+          mb-3 sm:mb-4">
              ADMIN ANALYTICS
           </h1>
           <p className="text-gray-400 text-sm sm:text-base lg:text-lg">
@@ -58,8 +58,8 @@ function AdminAnalytics(){
 
         {/* ERROR MESSAGE */}
         {error && (
-          <div className="mb-6 sm:mb-8 p-4 rounded-lg border border-red-500/40 bg-red-500/10 max-w-2xl mx-auto">
-            <p className="text-sm sm:text-base text-red-400 text-center">{error}</p>
+          <div className="mb-6 sm:mb-8 p-4 rounded-lg border border-[#FFB7B2]/30 bg-[#FFB7B2]/10 max-w-2xl mx-auto">
+            <p className="text-sm sm:text-base text-[#FFB7B2] text-center">{error}</p>
           </div>
         )}
 
@@ -67,7 +67,7 @@ function AdminAnalytics(){
           <>
             {/* MAIN STATS */}
             <div className="mb-8 sm:mb-10 lg:mb-12">
-              <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-purple-300 mb-4 sm:mb-6 flex items-center gap-2">
+              <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-[#FFC0C1] mb-4 sm:mb-6 flex items-center gap-2">
                 <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                 </svg>
@@ -82,7 +82,7 @@ function AdminAnalytics(){
 
             {/* SOURCE STATS */}
             <div className="mb-8 sm:mb-10 lg:mb-12">
-              <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-purple-300 mb-4 sm:mb-6 flex items-center gap-2">
+              <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-[#FFC0C1] mb-4 sm:mb-6 flex items-center gap-2">
                 <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
                 </svg>
@@ -97,7 +97,7 @@ function AdminAnalytics(){
 
             {/* SYSTEM INFO */}
             <div className="mb-8 sm:mb-10 lg:mb-12">
-              <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-purple-300 mb-4 sm:mb-6 flex items-center gap-2">
+              <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-[#FFC0C1] mb-4 sm:mb-6 flex items-center gap-2">
                 <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
@@ -116,9 +116,9 @@ function AdminAnalytics(){
           <button
             onClick={()=>navigate("/admin")}
             className="flex-1 sm:flex-none px-6 sm:px-8 py-3 
-            bg-purple-600 rounded-lg hover:bg-purple-700 
+            bg-[#FFC0C1] rounded-lg hover:bg-[#ffb0b1] 
             transition-all duration-300 shadow-lg hover:shadow-xl
-            text-sm sm:text-base font-medium
+            text-sm sm:text-base font-medium text-[#1e1e2e]
             flex items-center justify-center gap-2
             hover:scale-[1.02] active:scale-[0.98]"
           >
@@ -131,9 +131,9 @@ function AdminAnalytics(){
           <button
             onClick={fetchAnalytics}
             className="flex-1 sm:flex-none px-6 sm:px-8 py-3 
-            bg-cyan-600 rounded-lg hover:bg-cyan-700 
+            bg-[#97C9DB] rounded-lg hover:bg-[#85bdd2] 
             transition-all duration-300 shadow-lg hover:shadow-xl
-            text-sm sm:text-base font-medium
+            text-sm sm:text-base font-medium text-[#1e1e2e]
             flex items-center justify-center gap-2
             hover:scale-[1.02] active:scale-[0.98]"
           >
@@ -155,52 +155,52 @@ export default AdminAnalytics;
 function Card({title, value, color, icon}){
   const colors = {
     cyan: {
-      border: "border-cyan-500",
-      shadow: "shadow-[0_0_15px_cyan]",
-      hoverShadow: "hover:shadow-[0_0_25px_cyan]",
-      text: "text-cyan-300"
+      border: "border-[#97C9DB]",
+      shadow: "shadow-lg",
+      hoverShadow: "hover:shadow-xl",
+      text: "text-[#97C9DB]"
     },
     green: {
-      border: "border-green-500",
-      shadow: "shadow-[0_0_15px_green]",
-      hoverShadow: "hover:shadow-[0_0_25px_green]",
-      text: "text-green-400"
+      border: "border-[#B5EAD7]",
+      shadow: "shadow-lg",
+      hoverShadow: "hover:shadow-xl",
+      text: "text-[#B5EAD7]"
     },
     red: {
-      border: "border-red-500",
-      shadow: "shadow-[0_0_15px_red]",
-      hoverShadow: "hover:shadow-[0_0_25px_red]",
-      text: "text-red-400"
+      border: "border-[#FFB7B2]",
+      shadow: "shadow-lg",
+      hoverShadow: "hover:shadow-xl",
+      text: "text-[#FFB7B2]"
     },
     purple: {
-      border: "border-purple-500",
-      shadow: "shadow-[0_0_15px_purple]",
-      hoverShadow: "hover:shadow-[0_0_25px_purple]",
-      text: "text-purple-400"
+      border: "border-[#FFC0C1]",
+      shadow: "shadow-lg",
+      hoverShadow: "hover:shadow-xl",
+      text: "text-[#FFC0C1]"
     },
     yellow: {
-      border: "border-yellow-500",
-      shadow: "shadow-[0_0_15px_yellow]",
-      hoverShadow: "hover:shadow-[0_0_25px_yellow]",
-      text: "text-yellow-400"
+      border: "border-[#FFDAC1]",
+      shadow: "shadow-lg",
+      hoverShadow: "hover:shadow-xl",
+      text: "text-[#FFDAC1]"
     },
     pink: {
-      border: "border-pink-500",
-      shadow: "shadow-[0_0_15px_pink]",
-      hoverShadow: "hover:shadow-[0_0_25px_pink]",
-      text: "text-pink-400"
+      border: "border-[#FFC0C1]",
+      shadow: "shadow-lg",
+      hoverShadow: "hover:shadow-xl",
+      text: "text-[#FFC0C1]"
     },
     orange: {
-      border: "border-orange-500",
-      shadow: "shadow-[0_0_15px_orange]",
-      hoverShadow: "hover:shadow-[0_0_25px_orange]",
-      text: "text-orange-400"
+      border: "border-[#FFDAC1]",
+      shadow: "shadow-lg",
+      hoverShadow: "hover:shadow-xl",
+      text: "text-[#FFDAC1]"
     },
     blue: {
-      border: "border-blue-500",
-      shadow: "shadow-[0_0_15px_blue]",
-      hoverShadow: "hover:shadow-[0_0_25px_blue]",
-      text: "text-blue-400"
+      border: "border-[#97C9DB]",
+      shadow: "shadow-lg",
+      hoverShadow: "hover:shadow-xl",
+      text: "text-[#97C9DB]"
     }
   };
 
@@ -250,7 +250,7 @@ function Card({title, value, color, icon}){
   const colorClasses = colors[color] || colors.cyan;
 
   return(
-    <div className={`bg-[#020617] border ${colorClasses.border} ${colorClasses.shadow} ${colorClasses.hoverShadow}
+    <div className={`bg-[#1e1e2e] border ${colorClasses.border} ${colorClasses.shadow} ${colorClasses.hoverShadow}
     rounded-xl p-5 sm:p-6 lg:p-8 text-center 
     transition-all duration-300 hover:scale-[1.02]`}>
       

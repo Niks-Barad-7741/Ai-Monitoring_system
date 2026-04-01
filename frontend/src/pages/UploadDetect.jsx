@@ -67,7 +67,7 @@ function UploadDetect(){
 
     try{
       const res = await axios.post(
-        "http://127.0.0.1:8000/ai/detect-image",
+        "/ai/detect-image",
         formData,
         { headers:{ Authorization:`Bearer ${token}` } }
       );
@@ -91,7 +91,7 @@ function UploadDetect(){
   };
 
   return(
-    <div className="min-h-screen bg-gradient-to-br from-[#020617] via-[#0a1128] to-[#020617] 
+    <div className="min-h-screen bg-[#1e1e2e] 
     flex flex-col items-center justify-center 
     px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
 
@@ -101,15 +101,15 @@ function UploadDetect(){
         {/* TITLE */}
         <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl 
         font-bold mb-6 sm:mb-8 lg:mb-10
-        text-cyan-400 tracking-wide sm:tracking-widest 
-        text-center drop-shadow-[0_0_15px_cyan]">
+        text-[#97C9DB] tracking-wide sm:tracking-widest 
+        text-center">
           AI IMAGE SCANNER
         </h1>
 
         {/* MAIN CARD */}
         <div className="
-          bg-[#0b1120]/80 backdrop-blur-lg
-          border border-cyan-500/40 
+          bg-[#282828] backdrop-blur-lg
+          border border-[#97C9DB]/30 
           shadow-[0_0_30px_rgba(6,182,212,0.3)]
           hover:shadow-[0_0_40px_rgba(6,182,212,0.5)]
           p-6 sm:p-8 lg:p-10
@@ -121,7 +121,7 @@ function UploadDetect(){
           {preview ? (
             <div className="mb-6 sm:mb-8">
               <div className="relative aspect-video sm:aspect-square lg:aspect-video 
-              rounded-xl overflow-hidden border-2 border-cyan-500/40
+              rounded-xl overflow-hidden border-2 border-[#97C9DB]/30
               bg-black/40">
                 <img 
                   src={preview} 
@@ -133,7 +133,7 @@ function UploadDetect(){
                 <button
                   onClick={resetUpload}
                   className="absolute top-2 right-2 sm:top-3 sm:right-3
-                  bg-red-500/90 hover:bg-red-600
+                  bg-[#FFB7B2]/90 hover:bg-[#FFB7B2] text-[#1e1e2e]
                   text-white rounded-full p-2 sm:p-2.5
                   transition-all duration-200
                   shadow-lg hover:shadow-xl"
@@ -163,8 +163,8 @@ function UploadDetect(){
                 htmlFor="file-upload"
                 className="flex flex-col items-center justify-center
                 aspect-video sm:aspect-square lg:aspect-video
-                border-2 border-dashed border-cyan-500/40
-                hover:border-cyan-400
+                border-2 border-dashed border-[#97C9DB]/30
+                hover:border-[#97C9DB]
                 rounded-xl cursor-pointer
                 bg-black/20 hover:bg-black/30
                 transition-all duration-300
@@ -174,7 +174,7 @@ function UploadDetect(){
                 <div className="flex flex-col items-center justify-center py-6 sm:py-8">
                   <svg 
                     className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 
-                    text-cyan-400 group-hover:text-cyan-300 
+                    text-[#97C9DB] group-hover:text-[#97C9DB] 
                     transition-colors mb-3 sm:mb-4"
                     fill="none" 
                     stroke="currentColor" 
@@ -188,7 +188,7 @@ function UploadDetect(){
                     />
                   </svg>
                   
-                  <p className="text-sm sm:text-base lg:text-lg text-cyan-400 font-medium mb-1 sm:mb-2">
+                  <p className="text-sm sm:text-base lg:text-lg text-[#97C9DB] font-medium mb-1 sm:mb-2">
                     Click to upload image
                   </p>
                   <p className="text-xs sm:text-sm text-gray-500 px-4 text-center">
@@ -214,9 +214,9 @@ function UploadDetect(){
           {/* ERROR MESSAGE */}
           {error && (
             <div className="mb-6 sm:mb-8 p-3 sm:p-4 
-            rounded-lg border border-red-500/40 
-            bg-red-500/10 animate-shake">
-              <p className="text-xs sm:text-sm text-red-400 text-center flex items-center justify-center gap-2">
+            rounded-lg border border-[#FFB7B2]/30 
+            bg-[#FFB7B2]/10 animate-shake">
+              <p className="text-xs sm:text-sm text-[#FFB7B2] text-center flex items-center justify-center gap-2">
                 <svg className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -237,7 +237,7 @@ function UploadDetect(){
               flex items-center justify-center gap-2 sm:gap-3
               ${loading || !file
                 ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-                : "bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white shadow-[0_0_20px_rgba(6,182,212,0.5)] hover:shadow-[0_0_30px_rgba(6,182,212,0.7)] hover:scale-[1.02] active:scale-[0.98]"
+                : "bg-[#97C9DB] text-[#1e1e2e] hover:bg-[#85bdd2] transition font-semibold shadow-lg"
               }
             `}
           >
@@ -267,25 +267,23 @@ function UploadDetect(){
             animate-fadeIn
             transition-all duration-300"
             style={{
-              borderColor: result === "Mask" ? "rgb(34, 197, 94)" : "rgb(239, 68, 68)",
-              boxShadow: result === "Mask" 
-                ? "0 0 20px rgba(34, 197, 94, 0.3)" 
-                : "0 0 20px rgba(239, 68, 68, 0.3)"
+              borderColor: result === "Mask" ? "#B5EAD7" : "#FFB7B2",
+              boxShadow: "none"
             }}>
               
               {/* Result Icon */}
               <div className="flex justify-center mb-3 sm:mb-4">
                 {result === "Mask" ? (
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-green-500/20 
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-[#B5EAD7]/20 
                   flex items-center justify-center animate-bounce">
-                    <svg className="w-6 h-6 sm:w-8 sm:h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-6 h-6 sm:w-8 sm:h-8 text-[#B5EAD7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
                 ) : (
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-red-500/20 
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-[#FFB7B2]/20 
                   flex items-center justify-center animate-bounce">
-                    <svg className="w-6 h-6 sm:w-8 sm:h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-6 h-6 sm:w-8 sm:h-8 text-[#FFB7B2]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </div>
@@ -298,7 +296,7 @@ function UploadDetect(){
               </h2>
               <p className="text-center">
                 <span className={`text-2xl sm:text-3xl lg:text-4xl font-bold ${
-                  result === "Mask" ? "text-green-400" : "text-red-400"
+                  result === "Mask" ? "text-[#B5EAD7]" : "text-[#FFB7B2]"
                 }`}>
                   {result === "Mask" ? " MASK DETECTED" : " NO MASK"}
                 </span>
@@ -332,8 +330,8 @@ function UploadDetect(){
                 onClick={resetUpload}
                 className="flex-1 py-2.5 sm:py-3 px-4 sm:px-6
                 text-xs sm:text-sm font-medium
-                text-cyan-400 hover:text-cyan-300
-                border border-cyan-600 hover:border-cyan-500
+                text-[#97C9DB] hover:text-[#97C9DB]
+                border border-[#97C9DB] hover:border-[#97C9DB]
                 rounded-lg transition-all duration-200
                 flex items-center justify-center gap-2"
                 disabled={loading}
