@@ -11,3 +11,4 @@ db = client["mask_detection_db"]
 # collections
 logs_collection = db["logs"]
 users_collection = db["users"]
+refresh_tokens_collection = db["refresh_tokens"]
