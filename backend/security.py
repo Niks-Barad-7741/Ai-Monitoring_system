@@ -1,12 +1,16 @@
+import os
+from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 import uuid
 
-# secret key (later we move to .env)
-SECRET_KEY = "ai-monitoring-secret"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 15
-REFRESH_TOKEN_EXPIRE_DAYS = 7
+load_dotenv()
+
+# secret keys loaded safely with fallback
+SECRET_KEY = os.getenv("SECRET_KEY", "ai-monitoring-secret")
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "15"))
+REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
 
 
 # 🔐 create access token (short-lived JWT)

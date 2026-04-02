@@ -1,12 +1,17 @@
+import os
+from dotenv import load_dotenv
 from pymongo import MongoClient
 
-# MongoDB connection
-MONGO_URL = "mongodb://localhost:27017/"
+load_dotenv()
+
+# MongoDB connection with safe fallback
+MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017/")
 
 client = MongoClient(MONGO_URL)
 
 # database name (your existing one)
-db = client["mask_detection_db"]
+DB_NAME = os.getenv("DB_NAME", "mask_detection_db")
+db = client[DB_NAME]
 
 # collections
 logs_collection = db["logs"]

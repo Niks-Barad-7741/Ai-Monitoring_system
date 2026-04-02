@@ -29,22 +29,9 @@ app.include_router(admin_analytics.router, prefix="/admin",tags=["Analytics"])
 app.include_router(user_analytics.router,prefix="/user",tags=["Analytics"])
 
 
-# ===============================
-# SERVE REACT FRONTEND
-# ===============================
-
-frontend_path = os.path.join(os.path.dirname(__file__), "../frontend/dist")
-
-# serve static assets
-app.mount("/assets", StaticFiles(directory=f"{frontend_path}/assets"), name="assets")
-
-# serve React index
 @app.get("/")
-def serve_frontend():
-    return FileResponse(f"{frontend_path}/index.html")
-@app.get("/{full_path:path}")
-def serve_react_app(full_path: str):
-    return FileResponse(f"{frontend_path}/index.html")
+def home():
+    return {"message": "API is strictly running. Use IIS for frontend."}
 # @app.get("/")
 # def home():
 #     return {"message": "Backend Running "}
