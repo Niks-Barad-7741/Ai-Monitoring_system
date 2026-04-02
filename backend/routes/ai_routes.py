@@ -93,8 +93,44 @@ def detect_image(file: UploadFile = File(...), current_user=Depends(get_current_
     with open(temp_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    image = Image.open(temp_path).convert("RGB")
-    input_tensor = transform(image).unsqueeze(0).to(device)
+    # Load image with OpenCV for face detection
+    frame = cv2.imread(temp_path)
+    if frame is None:
+        return {"error": "Invalid image format"}
+
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    # 1. Detect faces
+    faces = face_cascade.detectMultiScale(
+        gray,
+        scaleFactor=1.1,
+        minNeighbors=4,
+        minSize=(60, 60) # slightly smaller for static uploads
+    )
+
+    if len(faces) == 0:
+        return {
+            "prediction": "No Face",
+            "confidence": 0,
+            "user": current_user["email"],
+            "role": current_user["role"]
+        }
+
+    # 2. Get first face and check skin
+    x, y, w, h = faces[0]
+    face_roi = frame[y:y+h, x:x+w]
+
+    if not is_real_face(face_roi):
+        return {
+            "prediction": "No Face",
+            "confidence": 0,
+            "user": current_user["email"],
+            "role": current_user["role"]
+        }
+
+    # 3. AI Prediction on crop
+    pil_image = Image.fromarray(cv2.cvtColor(face_roi, cv2.COLOR_BGR2RGB))
+    input_tensor = transform(pil_image).unsqueeze(0).to(device)
 
     with torch.no_grad():
         output = model(input_tensor)

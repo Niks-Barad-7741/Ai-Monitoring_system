@@ -105,12 +105,18 @@ def get_admin_analytics(current_user=Depends(get_current_user)):
         "timestamp": {"$regex": f"^{today_str}"}
     })
 
+    # ✅ Count total system detections (Jupyter notebook logs)
+    system = collection.count_documents({
+        "source": {"$regex": "^system$", "$options": "i"}
+    })
+
     return {
         "total": total,
         "mask": mask,
         "no_mask": no_mask,
         "webcam": webcam_today,  # ✅ Only today
         "upload": upload_today,  # ✅ Only today
+        "system": system,        # ✅ Jupyter notebook logs
         "today": today_count,
         "active_users": active_users
     }
