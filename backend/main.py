@@ -1,4 +1,9 @@
 import os
+from dotenv import load_dotenv
+
+# Load all variables from .env before anything else!
+load_dotenv()
+
 from fastapi import FastAPI, Depends
 from routes import auth,dashboard
 from routes import ai_routes
@@ -6,10 +11,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from routes import admin_analytics,user_analytics,user_analytics
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-
-
-
-
 from dependencies import get_current_user
 
 app = FastAPI(title="AI Monitoring System")
