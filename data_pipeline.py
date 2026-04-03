@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 
 
 def get_dataloaders(
-    dataset_path="Dataset",
+    dataset_path="../Dataset",
     img_size=128,
     batch_size=32,
     num_workers=0
