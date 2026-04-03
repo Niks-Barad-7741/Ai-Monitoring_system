@@ -1,11 +1,16 @@
+import os
+from dotenv import load_dotenv
+
+# Load all variables from .env before anything else!
+load_dotenv()
+
 from fastapi import FastAPI, Depends
 from routes import auth,dashboard
 from routes import ai_routes
 from fastapi.middleware.cors import CORSMiddleware
 from routes import admin_analytics,user_analytics,user_analytics
-
-
-
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from dependencies import get_current_user
 
 app = FastAPI(title="AI Monitoring System")
@@ -25,10 +30,25 @@ app.include_router(admin_analytics.router, prefix="/admin",tags=["Analytics"])
 app.include_router(user_analytics.router,prefix="/user",tags=["Analytics"])
 
 
+# ===============================
+# SERVE REACT FRONTEND
+# ===============================
 
+frontend_path = os.path.join(os.path.dirname(__file__), "../frontend/dist")
+
+# serve static assets
+app.mount("/assets", StaticFiles(directory=f"{frontend_path}/assets"), name="assets")
+
+# serve React index
 @app.get("/")
-def home():
-    return {"message": "Backend Running 🚀"}
+def serve_frontend():
+    return FileResponse(f"{frontend_path}/index.html")
+@app.get("/{full_path:path}")
+def serve_react_app(full_path: str):
+    return FileResponse(f"{frontend_path}/index.html")
+# @app.get("/")
+# def home():
+#     return {"message": "Backend Running "}
 
 
 # 🔐 TEST PROTECTED ROUTE (only logged user)

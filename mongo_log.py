@@ -3,31 +3,31 @@ from datetime import datetime
 import os
 import cv2
 import asyncio
-# from live_socket import manager
-try:
-    from live_socket import manager
-    SOCKET_AVAILABLE = True
-except:
-    SOCKET_AVAILABLE = False
-    print("⚠️ Running in Notebook mode (no websocket)")
-# =========================
-# 📁 PROJECT ROOT
-# =========================
+from dotenv import load_dotenv
+
+# ============================================
+# 📁 CONFIGURATION: SHARED FROM BACKEND/.ENV
+# ============================================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-LOG_FILE = os.path.join(BASE_DIR, "log.txt")
+DOTENV_PATH = os.path.join(BASE_DIR, "backend", ".env")
+load_dotenv(DOTENV_PATH)
 
 # =========================
-# 📁 IMAGE SAVE FOLDER
+# 🟢 MongoDB (Strict Loading)
 # =========================
-IMAGE_DIR = os.path.join(BASE_DIR, "logs_images")
-os.makedirs(IMAGE_DIR, exist_ok=True)
+MONGO_URL = os.getenv("MONGO_URL")
+DB_NAME = os.getenv("DB_NAME")
 
-# =========================
-# 🟢 MongoDB
-# =========================
-client = MongoClient("mongodb://localhost:27017/")
-db = client["mask_detection_db"]
-collection = db["logs"]
+if not MONGO_URL or not DB_NAME:
+    print("❌ ERROR: MongoDB Configuration missing from backend/.env")
+    # We don't crash the script immediately because Notebooks might import this, 
+    # but we prevent the client from initializing incorrectly.
+    client = None
+    collection = None
+else:
+    client = MongoClient(MONGO_URL)
+    db = client[DB_NAME]
+    collection = db["logs"]
 
 # =========================
 # 🚀 SAVE LOG FUNCTION (SMART DUPLICATE CHECK)

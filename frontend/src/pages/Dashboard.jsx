@@ -99,23 +99,23 @@ function Dashboard(){
   return (
 
     <div className="min-h-screen flex items-center justify-center 
-    bg-gradient-to-br from-[#070716] via-[#0b0b1e] to-[#050510] 
+    bg-[#1e1e2e] 
     px-4 sm:px-6 lg:px-8 py-8">
 
       <div className="text-center max-w-xl w-full">
 
-        {/* 🔵 glowing orb - responsive sizing */}
+        {/* glowing orb - responsive sizing */}
         <div className="relative flex justify-center mb-6 sm:mb-8 lg:mb-10">
           
           {/* Glow effect - scales with screen size */}
           <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 
           rounded-full 
-          bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 
-          blur-2xl opacity-70 animate-pulse"></div>
+          bg-gradient-to-r from-[#FFC0C1] via-[#97C9DB] to-[#FFC0C1] 
+          blur-2xl opacity-40 animate-pulse"></div>
 
           {/* Robot emoji - scales with screen size */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl">𖠌</span>
+            <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl">🤖</span>
           </div>
         </div>
 
@@ -137,14 +137,14 @@ function Dashboard(){
         {/* ANIMATION DOTS - responsive sizing and spacing */}
         <div className="flex justify-center mt-6 sm:mt-8 lg:mt-10 gap-2 sm:gap-3">
           <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4 
-          bg-cyan-400 rounded-full animate-bounce"></div>
+          bg-[#FFC0C1] rounded-full animate-bounce"></div>
           
           <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4 
-          bg-purple-500 rounded-full animate-bounce 
+          bg-[#97C9DB] rounded-full animate-bounce 
           [animation-delay:150ms]"></div>
           
           <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4 
-          bg-pink-500 rounded-full animate-bounce 
+          bg-[#FFC0C1] rounded-full animate-bounce 
           [animation-delay:300ms]"></div>
         </div>
 

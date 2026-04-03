@@ -28,7 +28,6 @@ function Register() {
     setError("");
     setSuccess("");
 
-    // ── Frontend validation ──────────────────────────────
     if (!form.name.trim() || form.name.trim().length < 2) {
       setError("Name must be at least 2 characters");
       return;
@@ -48,7 +47,7 @@ function Register() {
 
     setLoading(true);
     try {
-      await axios.post("http://127.0.0.1:8000/auth/register", {
+      await axios.post("/auth/register", {
         name:     form.name.trim(),
         email:    form.email.trim().toLowerCase(),
         password: form.password,
@@ -65,33 +64,35 @@ function Register() {
     }
   };
 
+  const inputClass = "w-full pl-9 pr-4 py-3 bg-[#1e1e2e] border border-[#3a3a4a] rounded-xl text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-[#97C9DB] focus:ring-1 focus:ring-[#97C9DB]/30 transition-colors";
+
   return (
-    <div className="min-h-screen bg-[#020617] flex items-center justify-center px-4 py-10">
+    <div className="min-h-screen bg-[#1e1e2e] flex items-center justify-center px-4 py-10">
 
       {/* Background glow */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-cyan-500/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 left-1/4 w-[300px] h-[300px] bg-purple-500/5 rounded-full blur-3xl" />
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-[#97C9DB]/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 left-1/4 w-[300px] h-[300px] bg-[#FFC0C1]/5 rounded-full blur-3xl" />
       </div>
 
       <div className="relative w-full max-w-md">
 
-        {/* ── Header ── */}
+        {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 mb-4">
-            <svg className="w-8 h-8 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#97C9DB]/10 border border-[#97C9DB]/30 mb-4">
+            <svg className="w-8 h-8 text-[#97C9DB]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
                 d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
             </svg>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-cyan-400 tracking-widest drop-shadow-[0_0_15px_cyan]">
+          <h1 className="text-3xl sm:text-4xl font-bold text-[#97C9DB] tracking-widest">
             Create Account
           </h1>
           <p className="text-gray-500 text-sm mt-2">AI Monitoring System</p>
         </div>
 
-        {/* ── Card ── */}
-        <div className="bg-[#0b1120]/80 backdrop-blur-xl border border-cyan-500/20 rounded-2xl p-6 sm:p-8 shadow-[0_0_40px_rgba(6,182,212,0.1)]">
+        {/* Card */}
+        <div className="bg-[#282828] border border-[#3a3a4a] rounded-2xl p-6 sm:p-8 shadow-2xl">
 
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
 
@@ -105,15 +106,8 @@ function Register() {
                       d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </span>
-                <input
-                  type="text"
-                  name="name"
-                  value={form.name}
-                  onChange={handleChange}
-                  placeholder="John Doe"
-                  required
-                  className="w-full pl-9 pr-4 py-3 bg-[#020617] border border-gray-700 rounded-xl text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/30 transition-colors"
-                />
+                <input type="text" name="name" value={form.name} onChange={handleChange}
+                  placeholder="John Doe" required className={inputClass} />
               </div>
             </div>
 
@@ -127,15 +121,8 @@ function Register() {
                       d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
                   </svg>
                 </span>
-                <input
-                  type="email"
-                  name="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  placeholder="you@gmail.com"
-                  required
-                  className="w-full pl-9 pr-4 py-3 bg-[#020617] border border-gray-700 rounded-xl text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/30 transition-colors"
-                />
+                <input type="email" name="email" value={form.email} onChange={handleChange}
+                  placeholder="you@gmail.com" required className={inputClass} />
               </div>
             </div>
 
@@ -149,12 +136,8 @@ function Register() {
                       d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
                 </span>
-                <select
-                  name="role"
-                  value={form.role}
-                  onChange={handleChange}
-                  className="w-full pl-9 pr-4 py-3 bg-[#020617] border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/30 transition-colors appearance-none cursor-pointer"
-                >
+                <select name="role" value={form.role} onChange={handleChange}
+                  className="w-full pl-9 pr-4 py-3 bg-[#1e1e2e] border border-[#3a3a4a] rounded-xl text-white text-sm focus:outline-none focus:border-[#97C9DB] focus:ring-1 focus:ring-[#97C9DB]/30 transition-colors appearance-none cursor-pointer">
                   <option value="user">User</option>
                   <option value="admin">Admin</option>
                 </select>
@@ -174,15 +157,9 @@ function Register() {
                       d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                   </svg>
                 </span>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  value={form.password}
-                  onChange={handleChange}
-                  placeholder="Min. 6 characters"
-                  required
-                  className="w-full pl-9 pr-10 py-3 bg-[#020617] border border-gray-700 rounded-xl text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/30 transition-colors"
-                />
+                <input type={showPassword ? "text" : "password"} name="password" value={form.password} onChange={handleChange}
+                  placeholder="Min. 6 characters" required
+                  className="w-full pl-9 pr-10 py-3 bg-[#1e1e2e] border border-[#3a3a4a] rounded-xl text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-[#97C9DB] focus:ring-1 focus:ring-[#97C9DB]/30 transition-colors" />
                 <button type="button" onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition">
                   {showPassword ? (
@@ -210,15 +187,9 @@ function Register() {
                       d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
                 </span>
-                <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  name="confirmPassword"
-                  value={form.confirmPassword}
-                  onChange={handleChange}
-                  placeholder="Re-enter password"
-                  required
-                  className="w-full pl-9 pr-10 py-3 bg-[#020617] border border-gray-700 rounded-xl text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/30 transition-colors"
-                />
+                <input type={showConfirmPassword ? "text" : "password"} name="confirmPassword" value={form.confirmPassword} onChange={handleChange}
+                  placeholder="Re-enter password" required
+                  className="w-full pl-9 pr-10 py-3 bg-[#1e1e2e] border border-[#3a3a4a] rounded-xl text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-[#97C9DB] focus:ring-1 focus:ring-[#97C9DB]/30 transition-colors" />
                 <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 transition">
                   {showConfirmPassword ? (
@@ -234,23 +205,12 @@ function Register() {
                   )}
                 </button>
               </div>
-              {/* Password match indicator */}
               {form.confirmPassword && (
                 <p className={`text-xs mt-1.5 flex items-center gap-1 ${form.password === form.confirmPassword ? 'text-green-400' : 'text-red-400'}`}>
                   {form.password === form.confirmPassword ? (
-                    <>
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/>
-                      </svg>
-                      Passwords match
-                    </>
+                    <><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7"/></svg>Passwords match</>
                   ) : (
-                    <>
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12"/>
-                      </svg>
-                      Passwords do not match
-                    </>
+                    <><svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12"/></svg>Passwords do not match</>
                   )}
                 </p>
               )}
@@ -276,14 +236,14 @@ function Register() {
               </div>
             )}
 
-            {/* Submit */}
+            {/* Submit — MLU-Explain flat pastel style */}
             <button
               type="submit"
               disabled={loading}
-              className={`w-full py-3 rounded-xl font-semibold text-sm tracking-wide transition flex items-center justify-center gap-2
+              className={`w-full py-3 rounded-lg font-semibold text-sm tracking-wide transition flex items-center justify-center gap-2 border-2 border-[#1e1e2e]
                 ${loading
-                  ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-                  : "bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white shadow-lg shadow-cyan-500/20"}`}
+                  ? "bg-gray-700 text-gray-400 cursor-not-allowed border-gray-700"
+                  : "bg-[#97C9DB] text-[#1e1e2e] hover:bg-[#85bdd2] shadow-lg"}`}
             >
               {loading ? (
                 <>
@@ -298,11 +258,11 @@ function Register() {
 
           </form>
 
-          {/* ── Footer ── */}
+          {/* Footer */}
           <div className="mt-6 text-center">
             <p className="text-gray-500 text-sm">
               Already have an account?{" "}
-              <button onClick={() => navigate("/")} className="text-cyan-400 hover:text-cyan-300 font-medium transition">
+              <button onClick={() => navigate("/")} className="text-[#FFC0C1] hover:text-[#ffb0b1] font-medium transition">
                 Sign In
               </button>
             </p>
