@@ -30,10 +30,44 @@ model.eval()
 
 classes = ["Mask", "No Mask"]
 
-# Haar Cascade (Standard Face Detector)
-face_cascade = cv2.CascadeClassifier(
-    cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-)
+# Deep Learning SSD Face Detector (Gatekeeper)
+PROTOTXT_PATH = "../Models/deploy.prototxt"
+CAFFEMODEL_PATH = "../Models/res10_300x300_ssd_iter_140000.caffemodel"
+face_net = cv2.dnn.readNetFromCaffe(PROTOTXT_PATH, CAFFEMODEL_PATH)
+
+def get_best_face(frame, confidence_threshold=0.6):
+    """
+    Gatekeeper Function: Identifies the most confident face in the frame using DNN.
+    Returns (x, y, w, h) of the face, or None if no valid face is found.
+    """
+    (h, w) = frame.shape[:2]
+    # Create a blob from the image: resizing to 300x300 for the model
+    blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0))
+    face_net.setInput(blob)
+    detections = face_net.forward()
+    
+    best_confidence = 0
+    best_box = None
+    
+    # Loop over the detections
+    for i in range(0, detections.shape[2]):
+        confidence = detections[0, 0, i, 2]
+        # Filter weak detections
+        if confidence > confidence_threshold and confidence > best_confidence:
+            best_confidence = confidence
+            # Compute (x, y) coordinates for bounding box
+            box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
+            (startX, startY, endX, endY) = box.astype("int")
+            
+            # Ensure the bounding boxes fall within the dimensions of the frame
+            (startX, startY) = (max(0, startY), max(0, startY)) # Correction: startX, startY limit check
+            (startX, startY) = (max(0, startX), max(0, startY))
+            (endX, endY) = (min(w - 1, endX), min(h - 1, endY))
+            
+            if endX > startX and endY > startY:
+                best_box = (startX, startY, endX - startX, endY - startY)
+                
+    return best_box
 
 transform = transforms.Compose([
     transforms.Resize((128, 128)),
@@ -60,7 +94,7 @@ def is_real_face(frame):
     if variance < 20: 
         return False
 
-    # 2. YCrCb Skin Check (The Fix)
+    # 2. YCrCb Skin Check (Calibrated for High Sensitivity)
     # Convert to YCrCb (Luminance, Red-diff, Blue-diff)
     ycrcb = cv2.cvtColor(frame, cv2.COLOR_BGR2YCrCb)
     
@@ -75,10 +109,10 @@ def is_real_face(frame):
     skin_ratio = skin_pixels / total_pixels
     
     # Debug info in your terminal
-    print(f" Skin Analysis -> Ratio: {skin_ratio:.4f} (Need > 0.05)")
+    print(f" Skin Analysis -> Ratio: {skin_ratio:.4f} (Need > 0.01)")
 
-    # Require 5% of the center crop to be actual human skin pigment
-    return skin_ratio > 0.05
+    # Require only 1% of ROI to be actual human skin pigment (v. sensitive for indoor use)
+    return skin_ratio > 0.01
 
 
 # =========================
@@ -93,8 +127,36 @@ def detect_image(file: UploadFile = File(...), current_user=Depends(get_current_
     with open(temp_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    image = Image.open(temp_path).convert("RGB")
-    input_tensor = transform(image).unsqueeze(0).to(device)
+    # Convert to OpenCV format for the Gatekeeper
+    frame = cv2.imread(temp_path)
+    if frame is None:
+        return {"error": "Invalid image file format"}
+
+    # =========================
+    # 🛑 GATEKEEPER: FACE VALIDATION
+    # =========================
+    face_box = get_best_face(frame, confidence_threshold=0.6)
+    
+    if not face_box:
+        # Ignore random non-face images without polluting logs with "Mask/No Mask"
+        try:
+            os.remove(temp_path)
+        except:
+            pass
+        return {
+            "prediction": "No Face",
+            "confidence": 0,
+            "user": current_user["email"],
+            "role": current_user["role"]
+        }
+
+    # Extract Face ROI
+    x, y, w, h = face_box
+    face_roi = frame[y:y+h, x:x+w]
+
+    # Convert ROI to PIL for PyTorch Mask CNN
+    pil_image = Image.fromarray(cv2.cvtColor(face_roi, cv2.COLOR_BGR2RGB))
+    input_tensor = transform(pil_image).unsqueeze(0).to(device)
 
     with torch.no_grad():
         output = model(input_tensor)
@@ -133,41 +195,28 @@ def detect_webcam(data: dict, current_user=Depends(get_current_user)):
         frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
         # =========================
-        # 1️⃣ FACE DETECTION FIRST
+        # 1️⃣ FACE DETECTION (DNN GATEKEEPER)
         # =========================
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-        faces = face_cascade.detectMultiScale(
-            gray,
-            scaleFactor=1.1,
-            minNeighbors=4,   # strict
-            minSize=(90,90)
-        )
+        face_box = get_best_face(frame, confidence_threshold=0.5)
 
         # =========================
         # 🚫 NO FACE FOUND = RETURN
         # =========================
-        if len(faces) == 0:
+        if not face_box:
             return {
                 "prediction": "No Face",
                 "confidence": 0
             }
 
         # =========================
-        # 2️⃣ USE FIRST FACE ONLY
+        # 2️⃣ EXTRACT FACE ROI
         # =========================
-        x, y, w, h = faces[0]
+        x, y, w, h = face_box
         face_roi = frame[y:y+h, x:x+w]
 
-        # =========================
-        # 3️⃣ EXTRA SAFETY: SKIN CHECK
-        # =========================
-        # prevents wall detection
-        if not is_real_face(face_roi):
-            return {
-                "prediction": "No Face",
-                "confidence": 0
-            }
+        # Removed obsolete is_real_face skin texture check.
+        # The DNN Gatekeeper handles false-positive wall detection much better,
+        # and the skin check was failing aggressively in low light conditions.
 
         # =========================
         # 4️⃣ AI PREDICTION
