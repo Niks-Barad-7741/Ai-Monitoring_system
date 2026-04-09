@@ -5,12 +5,28 @@ import cv2
 import asyncio
 from dotenv import load_dotenv
 
+# Websocket (optional — not available in Notebook mode)
+try:
+    from live_socket import manager
+    SOCKET_AVAILABLE = True
+except:
+    SOCKET_AVAILABLE = False
+    print("⚠️ Running in Notebook mode (no websocket)")
+
 # ============================================
 # 📁 CONFIGURATION: SHARED FROM BACKEND/.ENV
 # ============================================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DOTENV_PATH = os.path.join(BASE_DIR, "backend", ".env")
 load_dotenv(DOTENV_PATH)
+
+LOG_FILE = os.path.join(BASE_DIR, "log.txt")
+
+# =========================
+# 📁 IMAGE SAVE FOLDER
+# =========================
+IMAGE_DIR = os.path.join(BASE_DIR, "logs_images")
+os.makedirs(IMAGE_DIR, exist_ok=True)
 
 # =========================
 # 🟢 MongoDB (Strict Loading)
@@ -20,8 +36,6 @@ DB_NAME = os.getenv("DB_NAME")
 
 if not MONGO_URL or not DB_NAME:
     print("❌ ERROR: MongoDB Configuration missing from backend/.env")
-    # We don't crash the script immediately because Notebooks might import this, 
-    # but we prevent the client from initializing incorrectly.
     client = None
     collection = None
 else:
