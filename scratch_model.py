@@ -26,7 +26,7 @@ class ScratchMaskCNN(nn.Module):
             nn.MaxPool2d(2)
         )
 
-        # 🔥 Size-safe pooling (IMPORTANT)
+        #  Size-safe pooling (IMPORTANT)
         self.gap = nn.AdaptiveAvgPool2d((1, 1))
 
         self.fc = nn.Sequential(
