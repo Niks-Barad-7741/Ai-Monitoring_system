@@ -367,6 +367,7 @@ function UploadModal({ onClose, token, onSuccess }) {
   const [error,   setError]   = useState("");
 
   const isMask = result === "Mask";
+  const noFace = result === "No Face";
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
@@ -470,15 +471,22 @@ function UploadModal({ onClose, token, onSuccess }) {
                     <div
                       className="absolute inset-0"
                       style={{
-                        background: isMask
-                          ? "linear-gradient(to top, rgba(0,30,15,0.90) 0%, transparent 100%)"
-                          : "linear-gradient(to top, rgba(35,0,0,0.90) 0%, transparent 100%)"
+                        background: noFace
+                          ? "linear-gradient(to top, rgba(20,20,30,0.90) 0%, transparent 100%)"
+                          : isMask
+                            ? "linear-gradient(to top, rgba(0,30,15,0.90) 0%, transparent 100%)"
+                            : "linear-gradient(to top, rgba(35,0,0,0.90) 0%, transparent 100%)"
                       }}
                     />
                     <div className="relative z-10 flex items-center gap-3 sm:gap-4 px-5 py-4 sm:px-7 sm:py-5">
                       <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center border-2 flex-shrink-0
-                        ${isMask ? "bg-[#B5EAD7]/25 border-[#B5EAD7]/40" : "bg-[#FFB7B2]/25 border-[#FFB7B2]/40"}`}>
-                        {isMask ? (
+                        ${noFace ? "bg-gray-500/25 border-gray-400/40" : isMask ? "bg-[#B5EAD7]/25 border-[#B5EAD7]/40" : "bg-[#FFB7B2]/25 border-[#FFB7B2]/40"}`}>
+                        {noFace ? (
+                          <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        ) : isMask ? (
                           <svg className="w-5 h-5 sm:w-6 sm:h-6 text-[#B5EAD7]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.2}
                               d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -492,11 +500,11 @@ function UploadModal({ onClose, token, onSuccess }) {
                       </div>
                       <div>
                         <p className={`text-base sm:text-xl lg:text-2xl font-bold tracking-widest leading-tight
-                          ${isMask ? "text-[#B5EAD7]" : "text-[#FFB7B2]"}`}>
-                          {isMask ? "MASK DETECTED" : "NO MASK DETECTED"}
+                          ${noFace ? "text-gray-400" : isMask ? "text-[#B5EAD7]" : "text-[#FFB7B2]"}`}>
+                          {noFace ? "NO FACE DETECTED" : isMask ? "MASK DETECTED" : "NO MASK DETECTED"}
                         </p>
-                        <p className={`text-xs sm:text-sm mt-0.5 ${isMask ? "text-[#B5EAD7]/70" : "text-[#FFB7B2]/70"}`}>
-                          {isMask ? "Face mask is properly worn." : "No face mask found in the image."}
+                        <p className={`text-xs sm:text-sm mt-0.5 ${noFace ? "text-gray-500" : isMask ? "text-[#B5EAD7]/70" : "text-[#FFB7B2]/70"}`}>
+                          {noFace ? "No human face found in image." : isMask ? "Face mask is properly worn." : "No face mask found in the image."}
                         </p>
                       </div>
                     </div>
@@ -793,7 +801,7 @@ function WebcamModal({ onClose, token, onSuccess }) {
               <p className="text-xs text-gray-500 mt-0.5">Real-time mask detection</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-white transition p-2 hover:bg-white/10 rounded-lg flex-shrink-0">
+          <button onClick={() => { stopCamera(); onClose(); }} className="text-gray-400 hover:text-white transition p-2 hover:bg-white/10 rounded-lg flex-shrink-0">
             <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
