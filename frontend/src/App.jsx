@@ -10,11 +10,19 @@ import WebcamDetect from "./pages/WebcamDetect";
 import AdminAnalytics from "./pages/AdminAnalytics";
 
 import ProtectedRoute from "./components/ProtectedRoute";
+import { Toaster } from "react-hot-toast";
 
 function App(){
   return(
-    <Router>
-      <Routes>
+    <>
+      <Toaster position="top-right" toastOptions={{
+        style: {
+          background: '#333',
+          color: '#fff',
+        },
+      }} />
+      <Router>
+        <Routes>
 
         {/* LOGIN */}
         <Route path="/" element={<Login />} />
@@ -60,7 +68,8 @@ function App(){
         }/>
 
       </Routes>
-    </Router>
+      </Router>
+    </>
   )
 }
 

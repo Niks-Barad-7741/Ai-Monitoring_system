@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom"; 
 import axios from "axios";
+import toast from "react-hot-toast";
 
 function AdminDashboard(){
 
@@ -12,6 +13,7 @@ function AdminDashboard(){
   const [showWebcamModal,setShowWebcamModal] = useState(false);
   const [showLogsModal,setShowLogsModal] = useState(false);
   const [showAnalyticsModal,setShowAnalyticsModal] = useState(false);
+  const [showUserManagementModal,setShowUserManagementModal] = useState(false);
   
   const navigate = useNavigate();
 
@@ -30,7 +32,7 @@ function AdminDashboard(){
       setLogs(res.data.logs || []);
     })
     .catch(()=>{
-      alert("Session expired login again");
+      toast.error("Session expired login again");
       sessionStorage.clear();
       navigate("/");
     });
@@ -180,6 +182,19 @@ function AdminDashboard(){
             <span>View Logs</span>
           </button>
 
+          {/* 5. User Management Button (Green) */}
+          <button
+            onClick={()=>setShowUserManagementModal(true)}
+            className="px-6 sm:px-8 py-3 sm:py-4 rounded-lg bg-[#B5EAD7]/10 border border-[#B5EAD7]
+            hover:bg-[#B5EAD7] hover:text-black transition shadow-lg hover:shadow-xl
+            text-sm sm:text-base font-medium flex items-center justify-center gap-2"
+          >
+            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            <span>User Management</span>
+          </button>
+
         </div>
 
       </div>
@@ -189,6 +204,7 @@ function AdminDashboard(){
       {showWebcamModal && <WebcamModal onClose={()=>setShowWebcamModal(false)} token={token} onSuccess={fetchAdmin} />}
       {showLogsModal && <LogsModal onClose={()=>setShowLogsModal(false)} token={token} />}
       {showAnalyticsModal && <AnalyticsModal onClose={()=>setShowAnalyticsModal(false)} token={token} />}
+      {showUserManagementModal && <UserManagementModal onClose={()=>setShowUserManagementModal(false)} token={token} />}
 
     </div>
   )
@@ -1630,6 +1646,198 @@ function AnalyticStatCard({ title, value, color, icon }) {
         <p className={`text-3xl sm:text-4xl font-bold font-mono ${s.text}`}>
           {value !== undefined ? value : "0"}
         </p>
+      </div>
+    </div>
+  );
+}
+
+// ================= USER MANAGEMENT MODAL =================
+function UserManagementModal({ onClose, token }) {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Form State
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [form, setForm] = useState({ name: "", email: "", password: "", role: "user" });
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get("/admin/manage-users", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setUsers(res.data.users);
+    } catch (err) {
+      toast.error("Failed to fetch users");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const handleToggleBlock = async (email) => {
+    try {
+      const res = await axios.post("/admin/manage-users/toggle-block", { email }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success(res.data.message);
+      fetchUsers();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Failed to update block status");
+    }
+  };
+
+  const handleUpdateRole = async (email, newRole) => {
+    try {
+      const res = await axios.post("/admin/manage-users/update-role", { email, role: newRole }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success(res.data.message);
+      fetchUsers();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Failed to update role");
+    }
+  };
+
+  const handleDeleteUser = async (email) => {
+    if (!window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) return;
+    try {
+      const res = await axios.delete(`/admin/manage-users/${email}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success(res.data.message);
+      fetchUsers();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Failed to delete user");
+    }
+  };
+
+  const handleCreateSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post("/admin/manage-users/create", form, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success("User created successfully!");
+      setShowCreateForm(false);
+      setForm({ name: "", email: "", password: "", role: "user" });
+      fetchUsers();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || "Failed to create user");
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+      <div className="bg-[#1e1e2e] border border-[#3a3a4a] rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl">
+        <div className="px-6 py-5 border-b border-[#3a3a4a] flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-[#B5EAD7] flex items-center gap-3">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+            User Management
+          </h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-white transition p-2">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-lg font-medium text-white">System Users</h3>
+            <button onClick={() => setShowCreateForm(!showCreateForm)} className="px-4 py-2 bg-[#97C9DB] text-[#1e1e2e] font-semibold rounded-lg hover:bg-[#85bdd2] transition">
+              {showCreateForm ? "Cancel Creation" : "+ Create New User"}
+            </button>
+          </div>
+
+          {showCreateForm && (
+            <form onSubmit={handleCreateSubmit} className="mb-8 p-6 bg-[#282828] rounded-xl border border-[#3a3a4a] grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Full Name</label>
+                <input type="text" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} required className="w-full px-4 py-2 bg-[#1e1e2e] border border-[#3a3a4a] rounded-lg text-white" />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Email</label>
+                <input type="email" value={form.email} onChange={e=>setForm({...form,email:e.target.value})} required className="w-full px-4 py-2 bg-[#1e1e2e] border border-[#3a3a4a] rounded-lg text-white" />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Password</label>
+                <input type="password" value={form.password} onChange={e=>setForm({...form,password:e.target.value})} required className="w-full px-4 py-2 bg-[#1e1e2e] border border-[#3a3a4a] rounded-lg text-white" />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Role</label>
+                <select value={form.role} onChange={e=>setForm({...form,role:e.target.value})} className="w-full px-4 py-2 bg-[#1e1e2e] border border-[#3a3a4a] rounded-lg text-white">
+                  <option value="user">User</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              <div className="col-span-1 md:col-span-2 flex justify-end mt-2">
+                <button type="submit" className="px-6 py-2 bg-[#B5EAD7] text-[#1e1e2e] font-semibold rounded-lg hover:bg-[#a6d8c6] transition">Create User</button>
+              </div>
+            </form>
+          )}
+
+          {loading ? (
+            <div className="flex justify-center p-10"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#B5EAD7]" /></div>
+          ) : (
+            <div className="overflow-x-auto bg-[#282828] rounded-xl border border-[#3a3a4a]">
+              <table className="w-full text-left text-sm whitespace-nowrap">
+                <thead className="bg-[#1e1e2e] text-gray-400 uppercase text-xs border-b border-[#3a3a4a]">
+                  <tr>
+                    <th className="px-6 py-4 font-semibold">Name</th>
+                    <th className="px-6 py-4 font-semibold">Email</th>
+                    <th className="px-6 py-4 font-semibold">Role</th>
+                    <th className="px-6 py-4 font-semibold">Status</th>
+                    <th className="px-6 py-4 font-semibold">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#3a3a4a]">
+                  {(users || []).map(u => (
+                    <tr key={u.email} className="hover:bg-white/5 transition-colors">
+                      <td className="px-6 py-4 text-white font-medium">{u.name}</td>
+                      <td className="px-6 py-4 text-gray-300">{u.email}</td>
+                      <td className="px-6 py-4">
+                        <select 
+                          value={u.role} 
+                          onChange={(e) => handleUpdateRole(u.email, e.target.value)}
+                          className="bg-black/20 border border-[#3a3a4a] rounded px-3 py-1 text-sm text-white focus:outline-none focus:border-[#97C9DB]"
+                        >
+                          <option value="user">User</option>
+                          <option value="admin">Admin</option>
+                        </select>
+                      </td>
+                      <td className="px-6 py-4">
+                        {u.is_blocked ? (
+                          <span className="px-3 py-1 bg-red-500/20 text-red-400 rounded-full text-xs font-semibold">Blocked</span>
+                        ) : (
+                          <span className="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-xs font-semibold">Active</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 flex gap-3 text-xs font-semibold">
+                        <button 
+                          onClick={() => handleToggleBlock(u.email)}
+                          className={`px-4 py-1.5 rounded-lg border transition ${u.is_blocked ? "border-green-500/50 text-green-400 hover:bg-green-500/10" : "border-red-500/50 text-red-400 hover:bg-red-500/10"}`}
+                        >
+                          {u.is_blocked ? "Unblock" : "Block"}
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteUser(u.email)}
+                          className="px-4 py-1.5 rounded-lg border border-red-500 text-red-400 bg-red-500/10 hover:bg-red-500/20 transition"
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {(!users || users.length === 0) && (
+                    <tr><td colSpan="5" className="px-6 py-8 text-center text-gray-500">No users found.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

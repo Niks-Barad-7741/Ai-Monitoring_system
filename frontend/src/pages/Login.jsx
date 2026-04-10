@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 function Login(){
 
@@ -15,7 +16,7 @@ function Login(){
     e.preventDefault();
 
     if(!email || !password){
-      alert("Enter email & password");
+      toast.error("Enter email & password");
       return;
     }
 
@@ -32,6 +33,8 @@ function Login(){
       sessionStorage.setItem("role", res.data.role);
       sessionStorage.setItem("email", res.data.email);
 
+      toast.success("Login Successful", { position: "top-center" });
+
       if(res.data.role === "admin"){
         navigate("/admin");
       }else{
@@ -40,7 +43,7 @@ function Login(){
 
     }catch(error){
       const errorMsg = error.response?.data?.detail || "Invalid Login";
-      alert(errorMsg);
+      toast.error(errorMsg);
     }finally{
       setLoading(false);
     }

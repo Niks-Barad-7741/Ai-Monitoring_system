@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 function UserDashboard(){
 
@@ -29,7 +30,7 @@ function UserDashboard(){
       setLogs(res.data.logs || []);
     })
     .catch(()=>{
-      alert("Session expired login again");
+      toast.error("Session expired login again");
       sessionStorage.clear();
       navigate("/");
     });

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 function AdminAnalytics(){
   const [data,setData] = useState(null);
@@ -20,7 +21,7 @@ function AdminAnalytics(){
     .catch((err)=>{
       console.error("Analytics fetch error:", err);
       setError("Failed to load analytics");
-      alert("Session expired");
+      toast.error("Session expired");
       sessionStorage.clear();
       navigate("/");
     });
