@@ -66,7 +66,8 @@ def register_user(user: UserRegister):
         "name": user.name.strip(),
         "email": user.email.strip(),
         "password": hashed_password,
-        "role": user.role,
+        "role": "user",  # Force public registrations to be "user"
+        "is_blocked": False,
         "created_at": datetime.utcnow()
     }
 
@@ -94,6 +95,9 @@ def login_user(user: UserLogin):
     db_user = users_collection.find_one({"email": user.email})
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
+
+    if db_user.get("is_blocked", False):
+        raise HTTPException(status_code=403, detail="Your account has been blocked")
 
     if not pwd_context.verify(user.password, db_user["password"]):
         raise HTTPException(status_code=401, detail="Invalid password")
@@ -149,25 +153,25 @@ def refresh_access_token(data: dict):
     if not refresh_token:
         raise HTTPException(status_code=400, detail="Refresh token is required")
 
-    # 🔍 Look up refresh token in MongoDB (hash it first to compare)
+    #  Look up refresh token in MongoDB (hash it first to compare)
     hashed = hash_token(refresh_token)
     stored = refresh_tokens_collection.find_one({"token": hashed})
 
     if not stored:
         raise HTTPException(status_code=401, detail="Invalid refresh token")
 
-    # ⏰ Check if refresh token has expired
+    #  Check if refresh token has expired
     if stored["expires_at"] < datetime.utcnow():
         refresh_tokens_collection.delete_one({"token": hashed})
         raise HTTPException(status_code=401, detail="Refresh token expired")
 
-    # 👤 Get the user from DB
+    #  Get the user from DB
     user = users_collection.find_one({"email": stored["email"]})
     if not user:
         refresh_tokens_collection.delete_one({"token": refresh_token})
         raise HTTPException(status_code=404, detail="User not found")
 
-    # ✅ Generate fresh access token
+    #  Generate fresh access token
     new_access_token = create_access_token({
         "email": user["email"],
         "role": user["role"],

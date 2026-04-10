@@ -7,7 +7,7 @@ class UserRegister(BaseModel):
     name: str
     email: EmailStr
     password: str
-    role: str  # admin or user
+    role: str = "user"  # defaults to user for public registration
 
 
 # =========================

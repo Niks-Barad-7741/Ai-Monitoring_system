@@ -8,7 +8,7 @@ from fastapi import FastAPI, Depends
 from routes import auth,dashboard
 from routes import ai_routes
 from fastapi.middleware.cors import CORSMiddleware
-from routes import admin_analytics,user_analytics,user_analytics
+from routes import admin_analytics,user_analytics
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from dependencies import get_current_user
@@ -51,7 +51,7 @@ def serve_react_app(full_path: str):
 #     return {"message": "Backend Running "}
 
 
-# 🔐 TEST PROTECTED ROUTE (only logged user)
+#  TEST PROTECTED ROUTE (only logged user)
 @app.get("/protected")
 def protected_route(current_user = Depends(get_current_user)):
     return {
