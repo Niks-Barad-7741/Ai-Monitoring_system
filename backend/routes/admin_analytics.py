@@ -143,7 +143,13 @@ def create_user(user: UserRegister, current_admin=Depends(admin_only)):
     if user.role not in ["admin", "user"]:
         raise HTTPException(status_code=400, detail="Invalid role specified")
 
+    import re
     clean_email = user.email.strip().lower()
+    email_regex = r'^[a-zA-Z0-9._%+-]+@gmail\.com$'
+    if not re.match(email_regex, clean_email):
+        raise HTTPException(status_code=400, detail="Invalid email format (Only @gmail.com is allowed)")
+
+
     if users_collection.find_one({"email": clean_email}):
         raise HTTPException(status_code=400, detail="Email already exists")
 

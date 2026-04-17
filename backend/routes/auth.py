@@ -46,9 +46,9 @@ def register_user(user: UserRegister):
         raise HTTPException(status_code=400, detail="Name must be at least 6 characters")
 
     #  EMAIL REGEX VALIDATION
-    email_regex = r'^[a-zA-Z0-9._%+-]+@(gmail\.com|yahoo\.com)$'
+    email_regex = r'^[a-zA-Z0-9._%+-]+@gmail\.com$'
     if not re.match(email_regex, user.email):
-        raise HTTPException(status_code=400, detail="Invalid email format")
+        raise HTTPException(status_code=400, detail="Invalid email format (Only @gmail.com is allowed)")
 
     #  PASSWORD VALIDATION
     if len(user.password) < 6:
