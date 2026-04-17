@@ -15,7 +15,7 @@ import { Toaster } from "react-hot-toast";
 function App(){
   return(
     <>
-      <Toaster position="top-right" toastOptions={{
+      <Toaster position="top-center" toastOptions={{
         style: {
           background: '#333',
           color: '#fff',

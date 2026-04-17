@@ -1656,9 +1656,10 @@ function UserManagementModal({ onClose, token }) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Form State
+  // Form & Modal State
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "", role: "user" });
+  const [confirmAction, setConfirmAction] = useState(null);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -1678,40 +1679,44 @@ function UserManagementModal({ onClose, token }) {
     fetchUsers();
   }, []);
 
-  const handleToggleBlock = async (email) => {
-    try {
-      const res = await axios.post("/admin/manage-users/toggle-block", { email }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      toast.success(res.data.message);
-      fetchUsers();
-    } catch (err) {
-      toast.error(err.response?.data?.detail || "Failed to update block status");
-    }
+  const handleToggleBlock = (email, isBlocked) => {
+    setConfirmAction({ type: 'block', email, isBlocked });
   };
 
-  const handleUpdateRole = async (email, newRole) => {
-    try {
-      const res = await axios.post("/admin/manage-users/update-role", { email, role: newRole }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      toast.success(res.data.message);
-      fetchUsers();
-    } catch (err) {
-      toast.error(err.response?.data?.detail || "Failed to update role");
-    }
+  const handleUpdateRole = (email, oldRole, newRole) => {
+    setConfirmAction({ type: 'role', email, oldRole, newRole });
   };
 
-  const handleDeleteUser = async (email) => {
-    if (!window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) return;
+  const handleDeleteUser = (email) => {
+    setConfirmAction({ type: 'delete', email });
+  };
+
+  const executeConfirmAction = async () => {
+    if (!confirmAction) return;
+    const { type, email } = confirmAction;
+    
     try {
-      const res = await axios.delete(`/admin/manage-users/${email}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      toast.success(res.data.message);
+      if (type === 'block') {
+        const res = await axios.post("/admin/manage-users/toggle-block", { email }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        toast.success(res.data.message);
+      } else if (type === 'role') {
+        const res = await axios.post("/admin/manage-users/update-role", { email, role: confirmAction.newRole }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        toast.success(res.data.message);
+      } else if (type === 'delete') {
+        const res = await axios.delete(`/admin/manage-users/${email}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        toast.success(res.data.message);
+      }
       fetchUsers();
     } catch (err) {
-      toast.error(err.response?.data?.detail || "Failed to delete user");
+      toast.error(err.response?.data?.detail || `Failed to execute action`);
+    } finally {
+      setConfirmAction(null);
     }
   };
 
@@ -1731,19 +1736,21 @@ function UserManagementModal({ onClose, token }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-      <div className="bg-[#1e1e2e] border border-[#3a3a4a] rounded-2xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl">
-        <div className="px-6 py-5 border-b border-[#3a3a4a] flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-[#B5EAD7] flex items-center gap-3">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-            User Management
-          </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white transition p-2">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-3 sm:p-4 lg:p-6 animate-fadeIn">
+      <div className="bg-[#282828] border border-[#B5EAD7]/30 rounded-2xl w-full max-w-5xl max-h-[95vh] sm:max-h-[92vh] flex flex-col shadow-2xl">
+        <div className="sticky top-0 bg-[#282828] border-b border-[#3a3a4a] px-5 py-4 sm:px-8 sm:py-5 flex items-center justify-between z-10 rounded-t-2xl">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-[#B5EAD7]/15 border border-[#B5EAD7]/30 flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-[#B5EAD7]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+            </div>
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-[#B5EAD7]">User Management</h2>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-white transition p-2 hover:bg-white/10 rounded-lg">
+            <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-lg font-medium text-white">System Users</h3>
             <button onClick={() => setShowCreateForm(!showCreateForm)} className="px-4 py-2 bg-[#97C9DB] text-[#1e1e2e] font-semibold rounded-lg hover:bg-[#85bdd2] transition">
@@ -1768,8 +1775,8 @@ function UserManagementModal({ onClose, token }) {
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Role</label>
                 <select value={form.role} onChange={e=>setForm({...form,role:e.target.value})} className="w-full px-4 py-2 bg-[#1e1e2e] border border-[#3a3a4a] rounded-lg text-white">
-                  <option value="user">User</option>
-                  <option value="admin">Admin</option>
+                  <option value="user" className="bg-[#1e1e2e] text-white">User</option>
+                  <option value="admin" className="bg-[#1e1e2e] text-white">Admin</option>
                 </select>
               </div>
               <div className="col-span-1 md:col-span-2 flex justify-end mt-2">
@@ -1800,11 +1807,11 @@ function UserManagementModal({ onClose, token }) {
                       <td className="px-6 py-4">
                         <select 
                           value={u.role} 
-                          onChange={(e) => handleUpdateRole(u.email, e.target.value)}
+                          onChange={(e) => { if(e.target.value !== u.role) handleUpdateRole(u.email, u.role, e.target.value); }}
                           className="bg-black/20 border border-[#3a3a4a] rounded px-3 py-1 text-sm text-white focus:outline-none focus:border-[#97C9DB]"
                         >
-                          <option value="user">User</option>
-                          <option value="admin">Admin</option>
+                          <option value="user" className="bg-[#1e1e2e] text-white">User</option>
+                          <option value="admin" className="bg-[#1e1e2e] text-white">Admin</option>
                         </select>
                       </td>
                       <td className="px-6 py-4">
@@ -1816,7 +1823,7 @@ function UserManagementModal({ onClose, token }) {
                       </td>
                       <td className="px-6 py-4 flex gap-3 text-xs font-semibold">
                         <button 
-                          onClick={() => handleToggleBlock(u.email)}
+                          onClick={() => handleToggleBlock(u.email, u.is_blocked)}
                           className={`px-4 py-1.5 rounded-lg border transition ${u.is_blocked ? "border-green-500/50 text-green-400 hover:bg-green-500/10" : "border-red-500/50 text-red-400 hover:bg-red-500/10"}`}
                         >
                           {u.is_blocked ? "Unblock" : "Block"}
@@ -1839,6 +1846,56 @@ function UserManagementModal({ onClose, token }) {
           )}
         </div>
       </div>
+
+      {/* Confirmation Modal Overlay */}
+      {confirmAction && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fadeIn" onClick={() => setConfirmAction(null)}>
+          <div 
+            className={`relative flex flex-col gap-3 bg-[#282828] border ${
+              confirmAction.type === 'delete' ? 'border-[#FFB7B2]/30' : 
+              confirmAction.type === 'block' ? (confirmAction.isBlocked ? 'border-[#B5EAD7]/30' : 'border-[#FFB7B2]/30') : 
+              'border-[#97C9DB]/30'
+            } p-6 rounded-xl shadow-2xl w-[350px] mx-4`} 
+            onClick={e => e.stopPropagation()}
+          >
+            <button onClick={() => setConfirmAction(null)} className="absolute top-3 right-3 text-gray-400 hover:text-white transition">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <div className="pr-6">
+              <p className="font-medium text-white text-lg">
+                {confirmAction.type === 'delete' ? "Delete User?" :
+                 confirmAction.type === 'block' ? (confirmAction.isBlocked ? "Unblock User?" : "Block User?") :
+                 "Change Role?"}
+              </p>
+              <p className="text-sm text-gray-400 mt-1">
+                {confirmAction.type === 'delete' ? <span className="text-[#FFB7B2]">Are you sure you want to delete this user? This action cannot be undone.</span> :
+                 confirmAction.type === 'block' ? `Are you sure you want to ${confirmAction.isBlocked ? "unblock" : "block"} this user's access?` :
+                 <span>Are you sure you want to change this user's role to <strong className="text-white">{confirmAction.newRole === 'admin' ? 'Admin' : 'User'}</strong>?</span>}
+              </p>
+            </div>
+            <div className="flex gap-2 justify-end mt-2">
+              <button 
+                onClick={() => setConfirmAction(null)}
+                className="px-4 py-2 text-sm bg-[#3a3a4a] hover:bg-[#4a4a5a] text-white rounded-lg transition"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={executeConfirmAction}
+                className={`px-4 py-2 text-sm rounded-lg font-medium transition ${
+                  confirmAction.type === 'delete' ? "bg-[#FFB7B2]/20 text-[#FFB7B2] hover:bg-[#FFB7B2]/30" : 
+                  confirmAction.type === 'block' ? (confirmAction.isBlocked ? "bg-[#B5EAD7]/20 text-[#B5EAD7] hover:bg-[#B5EAD7]/30" : "bg-[#FFB7B2]/20 text-[#FFB7B2] hover:bg-[#FFB7B2]/30") : 
+                  "bg-[#97C9DB]/20 text-[#97C9DB] hover:bg-[#97C9DB]/30"
+                }`}
+              >
+                {confirmAction.type === 'delete' ? "Delete" :
+                 confirmAction.type === 'block' ? (confirmAction.isBlocked ? "Unblock" : "Block") :
+                 "Confirm"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

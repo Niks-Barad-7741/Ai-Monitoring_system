@@ -8,3 +8,23 @@ body{
   padding:0;
   overflow-x:hidden; /* prevent side scroll */
 }
+
+/* Custom Scrollbar for a darker aesthetic */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(30, 30, 46, 0.4); 
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(151, 201, 219, 0.3); 
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(151, 201, 219, 0.6); 
+}
